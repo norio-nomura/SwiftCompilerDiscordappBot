@@ -1,0 +1,11 @@
+version: '3'
+services:
+  playground:
+    build: .
+    environment:
+      HOST_PWD: ${PWD}
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/SwiftCompilerDiscordappBot
+    command: ["swift", "run"]
