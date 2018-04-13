@@ -1,14 +1,15 @@
-FROM norionomura/swift:41
+ARG DOCKER_IMAGE
+FROM ${DOCKER_IMAGE}
 RUN apt-get update && apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    software-properties-common && \
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
-    add-apt-repository \
-        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) \
-        stable" && \
-    apt-get update && apt-get install -y docker-ce libsodium-dev && \
-    rm -r /var/lib/apt/lists/*
+    libsodium-dev && \
+    rm -r /var/lib/apt/lists/* && \
+    useradd -m swiftbot
+ADD . /SwiftCompilerDiscordappBot
+RUN cd /SwiftCompilerDiscordappBot && \
+    swift build --configuration release --static-swift-stdlib && \
+    mv `swift build --configuration release --static-swift-stdlib --show-bin-path`/SwiftCompilerDiscordappBot /usr/bin && \
+    cd / && \
+    rm -rf SwiftCompilerDiscordappBot
 
-WORKDIR /SwiftCompilerDiscordappBot
+USER swiftbot
+CMD ["SwiftCompilerDiscordappBot"]

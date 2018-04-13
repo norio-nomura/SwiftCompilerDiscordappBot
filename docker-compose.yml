@@ -1,11 +1,13 @@
 version: '3'
 services:
   playground:
-    build: .
+    build: 
+      context: .
+      args:
+        DOCKER_IMAGE: ${DOCKER_IMAGE}
     environment:
-      HOST_PWD: ${PWD}
       DISCORD_TOKEN: ${DISCORD_TOKEN}
+      TIMEOUT: ${TIMEOUT}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - .:/SwiftCompilerDiscordappBot
-    command: ["swift", "run"]
+    command: ["SwiftCompilerDiscordappBot"]
