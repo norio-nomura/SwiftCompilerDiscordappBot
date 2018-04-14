@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "SwiftCompilerDiscordappBot",
     dependencies: [
-        .package(url: "https://github.com/Azoy/Sword", from: "0.9.0")
+        .package(url: "https://github.com/norio-nomura/Sword", .branch("patch-for-swift-bot"))
     ],
     targets: [
         .target(

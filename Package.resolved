@@ -56,6 +56,15 @@
         }
       },
       {
+        "package": "MimeType",
+        "repositoryURL": "https://github.com/onevcat/MimeType.git",
+        "state": {
+          "branch": null,
+          "revision": "54ec0b89e7acd8277f607a4cddceafe962fc541d",
+          "version": "1.0.0"
+        }
+      },
+      {
         "package": "Random",
         "repositoryURL": "https://github.com/vapor/random.git",
         "state": {
@@ -84,11 +93,11 @@
       },
       {
         "package": "Sword",
-        "repositoryURL": "https://github.com/Azoy/Sword",
+        "repositoryURL": "https://github.com/norio-nomura/Sword",
         "state": {
-          "branch": null,
-          "revision": "1b94ee1dfbfd9b2c78f2f298b2b10968befccef4",
-          "version": "0.9.0"
+          "branch": "patch-for-swift-bot",
+          "revision": "9505b01636dc677183b0bdd58ff8d3113a25b1f7",
+          "version": null
         }
       },
       {
