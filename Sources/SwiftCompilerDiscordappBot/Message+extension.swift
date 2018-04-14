@@ -8,11 +8,15 @@
 import Sword
 
 extension Message {
+    func log(_ message: String) {
+        print("🤖 \(id): " + message)
+    }
+
     func loggedReply(
         with message: String,
         then completion: ((Message?, RequestError?) -> ())? = nil
     ) {
         reply(with: message, then: completion)
-        print(message)
+        log(message)
     }
 }

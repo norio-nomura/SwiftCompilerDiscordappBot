@@ -38,7 +38,7 @@ bot.on(.guildAvailable) { data in
     print("🤖 Guild Available: \(guild.name)")
     guild.setNickname(to: playing.replacingOccurrences(of: "-RELEASE", with: "")) { error in
         if let error = error {
-            print("🤖 failed to change nickname with error: \(error)")
+            print("🤖 failed to change nickname in guild: \(guild.name), error: \(error)")
         }
     }
 }
@@ -50,7 +50,7 @@ bot.on(.messageCreate) { data in
         message.mentions.contains(where: { $0.id == bot.user?.id }) else { return }
 
     guard message.channel.type == .guildText else {
-        message.reply(with: "🤖 Sorry, I am not allowed to work on this channel.")
+        message.reply(with: "Sorry, I am not allowed to work on this channel.")
         return
     }
 
@@ -71,7 +71,7 @@ bot.on(.messageCreate) { data in
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
         try code.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
     } catch {
-        message.loggedReply(with: "🤖 failed to write `main.swift` with error: \(error)")
+        message.loggedReply(with: "failed to write `main.swift` with error: \(error)")
         return
     }
 
@@ -79,11 +79,12 @@ bot.on(.messageCreate) { data in
         do {
             try FileManager.default.removeItem(at: tempURL)
         } catch {
-            message.loggedReply(with: "🤖 failed to remove temporary directory with error: \(error)")
+            message.loggedReply(with: "failed to remove temporary directory with error: \(error)")
         }
     }
 
-    let args = ["timeout", "\(timeout)", "swift", "main.swift"]
+    let args = ["timeout", "--signal=KILL", "\(timeout)", "swift", "main.swift"]
+    message.log("executed: \(args)")
 #if os(macOS)
     // execute in docker
     let temp = tempURL.path
@@ -92,12 +93,14 @@ bot.on(.messageCreate) { data in
 #elseif os(Linux)
     let (status, output, error) = execute(args, in: tempURL)
 #endif
-    print("🤖 guild: \(message.channel), executed: \(args)")
 
-    if status == 124 {
-        message.loggedReply(with: "🤖 execution timeout: \(args)")
+    if status == 9 {
+        message.log("execution timeout: \(args)")
     } else if status != 0 {
-        message.loggedReply(with: "🤖 execution failed with error: \(status)")
+        if output.isEmpty && error.isEmpty {
+            message.reply(with: "exit status: \(status)")
+        }
+        message.log("exit status: \(status)")
     }
 
     func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
@@ -109,35 +112,41 @@ bot.on(.messageCreate) { data in
             """
     }
 
+    func string(from status: Int32) -> String {
+        return status == 9 ? "execution timeout with " : "exit status: \(status), "
+    }
+
     let contentsLimit = 1950
     if !output.isEmpty {
+        let statusMessage = status != 0 ? (string(from: status) + "output:\n") : ""
         if output.count > contentsLimit {
             let code = output[..<output.index(output.startIndex, offsetBy: contentsLimit)]
-            message.reply(with: codeblock(code))
+            message.reply(with: statusMessage + codeblock(code))
             do {
                 let outputFileURL = tempURL.appendingPathComponent("stdout.txt")
                 try output.write(to: outputFileURL, atomically: true, encoding: .utf8)
                 message.reply(with: ["file": outputFileURL.path])
             } catch {
-                message.loggedReply(with: "🤖 failed to write `stdout.txt` with error: \(error)")
+                message.loggedReply(with: "failed to write `stdout.txt` with error: \(error)")
             }
         } else {
-            message.reply(with: codeblock(output))
+            message.reply(with: statusMessage + codeblock(output))
         }
     }
     if !error.isEmpty {
+        let statusMessage = status != 0 && output.isEmpty ? string(from: status) : ""
         if error.count > contentsLimit {
             let code = error[..<error.index(error.startIndex, offsetBy: contentsLimit)]
-            message.reply(with: "🤖 error output:\n" + codeblock(code))
+            message.reply(with: statusMessage + "error output:\n" + codeblock(code))
             do {
                 let errorFileURL = tempURL.appendingPathComponent("stderr.txt")
                 try error.write(to: errorFileURL, atomically: true, encoding: .utf8)
                 message.reply(with: ["file": errorFileURL.path])
             } catch {
-                message.loggedReply(with: "🤖 failed to write `stdout.txt` with error: \(error)")
+                message.loggedReply(with: "failed to write `stdout.txt` with error: \(error)")
             }
         } else {
-            message.reply(with: "🤖 error output:\n" + codeblock(error))
+            message.reply(with: statusMessage + "error output:\n" + codeblock(error))
         }
     }
 }
