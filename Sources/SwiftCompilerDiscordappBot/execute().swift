@@ -14,6 +14,10 @@ func execute(_ args: [String], in directory: URL? = nil) -> (stdout: String, std
     if let directory = directory {
         process.currentDirectoryPath = directory.path
     }
+    var environment = ProcessInfo.processInfo.environment
+    environment["DISCORD_TOKEN"] = nil
+    environment["TIMEOUT"] = nil
+    process.environment = environment
     let stdoutPipe = Pipe(), stderrPipe = Pipe()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
