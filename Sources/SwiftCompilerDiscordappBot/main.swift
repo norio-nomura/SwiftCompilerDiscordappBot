@@ -23,6 +23,17 @@ let bot = Sword(token: discordToken)
 print("🤖online")
 bot.editStatus(to: "online", playing: playing)
 
+bot.on(.guildAvailable) { data in
+    guard let guild = data as? Guild else {
+        return
+    }
+    guild.setNickname(to: playing.replacingOccurrences(of: "-RELEASE", with: "")) { error in
+        if let error = error {
+            print("failed to change nickname with error: \(error)")
+        }
+    }
+}
+
 bot.on(.messageCreate) { data in
     guard let message = data as? Message,
         message.author?.id != bot.user?.id,
