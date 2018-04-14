@@ -48,6 +48,11 @@ bot.on(.messageCreate) { data in
         !(message.author?.isBot ?? false),
         message.mentions.contains(where: { $0.id == bot.user?.id }) else { return }
 
+    guard message.channel.type == .guildText else {
+        message.reply(with: "🤖 Sorry, I am not allowed to work on this channel.")
+        return
+    }
+
     let match = regexForCodeblock.firstMatch(in: message.content)
     guard match.count > 1 else {
         return
