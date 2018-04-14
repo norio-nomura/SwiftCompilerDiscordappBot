@@ -46,6 +46,15 @@ bot.on(.messageCreate) { data in
         try code.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
     } catch {
         message.reply(with: "failed to write `main.swift` with error: \(error)")
+        return
+    }
+
+    defer {
+        do {
+            try FileManager.default.removeItem(at: tempURL)
+        } catch {
+            message.reply(with: "failed to remove temporary directory with error: \(error)")
+        }
     }
 
 #if os(macOS)
