@@ -9,18 +9,25 @@ Inspired by [swift-compiler-discord-bot](https://github.com/kishikawakatsumi/swi
 
 [Creating a discord bot & getting a token](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token)
 
-```terminal.sh-session
-$ export DISCORD_TOKEN="<discord token here>" # set discord token
-```
-
-### Build & Start
+### Test on local host
 
 ```terminal.sh-session
-$ git clone https://github.com/norio-nomura/SwiftCompilerDiscordappBot.git
-$ cd SwiftCompilerDiscordappBot
-$ export DISCORD_TOKEN="<discord token here>"
-$ docker-compose up
+export DISCORD_TOKEN="<discord token here>" # set discord token
+export DOCKER_IMAGE=norionomura/swift:41 # select docker image
+docker-compose up
 ```
+
+### Deploy to Heroku
+
+```terminal.sh-session
+git clone https://github.com/norio-nomura/SwiftCompilerDiscordappBot.git
+cd SwiftCompilerDiscordappBot
+heroku container:login
+heroku create
+heroku config:set DISCORD_TOKEN="<discord token here>"
+heroku container:push worker --arg DOCKER_IMAGE=norionomura/swift:41
+```
+Configure Dyno on your [Heroku Dashboard](https://dashboard.heroku.com/apps)
 
 ## Author
 
