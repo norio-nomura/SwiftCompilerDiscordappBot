@@ -14,7 +14,7 @@ guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty els
     fatalError("Can't find `DISCORD_TOKEN` environment variable!")
 }
 
-let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 60
+let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
 
 let regexForCodeblock = try! NSRegularExpression(pattern: "```[a-zA-Z]*\\n([\\s\\S]*?\\n)```",
                                                  options: [.anchorsMatchLines, .dotMatchesLineSeparators])
