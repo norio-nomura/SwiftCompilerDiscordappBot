@@ -78,25 +78,46 @@ bot.on(.messageCreate) { data in
 #endif
     let (output, error) = execute(args, in: tempURL)
 
-    var reply = ""
-    if !output.isEmpty {
-        reply += """
-        ```
-        \(output)
-        ```
+    func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
+        return """
+            ```
+            \(string)
+            ```
 
-        """
+            """
+    }
+
+    let contentsLimit = 1950
+    if !output.isEmpty {
+        if output.count > contentsLimit {
+            let code = output[..<output.index(output.startIndex, offsetBy: contentsLimit)]
+            message.reply(with: codeblock(code))
+            do {
+                let outputFileURL = tempURL.appendingPathComponent("stdout.txt")
+                try output.write(to: outputFileURL, atomically: true, encoding: .utf8)
+                message.reply(with: ["file": outputFileURL.path])
+            } catch {
+                message.reply(with: "failed to write `stdout.txt` with error: \(error)")
+            }
+        } else {
+            message.reply(with: codeblock(output))
+        }
     }
     if !error.isEmpty {
-        reply += """
-        error:
-        ```
-        \(error)
-        ```
-
-        """
+        if error.count > contentsLimit {
+            let code = error[..<error.index(error.startIndex, offsetBy: contentsLimit)]
+            message.reply(with: "error:\n" + codeblock(code))
+            do {
+                let errorFileURL = tempURL.appendingPathComponent("stderr.txt")
+                try error.write(to: errorFileURL, atomically: true, encoding: .utf8)
+                message.reply(with: ["file": errorFileURL.path])
+            } catch {
+                message.reply(with: "failed to write `stdout.txt` with error: \(error)")
+            }
+        } else {
+            message.reply(with: "error:\n" + codeblock(error))
+        }
     }
-    message.reply(with: reply)
 }
 
 bot.connect()
