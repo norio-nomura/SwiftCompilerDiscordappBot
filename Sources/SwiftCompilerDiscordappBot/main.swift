@@ -28,16 +28,17 @@ let playing = regexForVersion.firstMatch(in: version).last ?? version
 
 let bot = Sword(token: discordToken)
 
-print("🤖online")
 bot.editStatus(to: "online", playing: playing)
+print("🤖 is online and playing \(playing).")
 
 bot.on(.guildAvailable) { data in
     guard let guild = data as? Guild else {
         return
     }
+    print("🤖 Guild Available: \(guild.name)")
     guild.setNickname(to: playing.replacingOccurrences(of: "-RELEASE", with: "")) { error in
         if let error = error {
-            print("failed to change nickname with error: \(error)")
+            print("🤖 failed to change nickname with error: \(error)")
         }
     }
 }
@@ -70,7 +71,7 @@ bot.on(.messageCreate) { data in
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
         try code.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
     } catch {
-        message.reply(with: "failed to write `main.swift` with error: \(error)")
+        message.loggedReply(with: "🤖 failed to write `main.swift` with error: \(error)")
         return
     }
 
@@ -78,22 +79,25 @@ bot.on(.messageCreate) { data in
         do {
             try FileManager.default.removeItem(at: tempURL)
         } catch {
-            message.reply(with: "failed to remove temporary directory with error: \(error)")
+            message.loggedReply(with: "🤖 failed to remove temporary directory with error: \(error)")
         }
     }
 
-#if os(macOS)
-    let temp = tempURL.path
-    // execute in docker
-    let args = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41",
-                "timeout", "\(timeout)", "swift", "main.swift"]
-#elseif os(Linux)
     let args = ["timeout", "\(timeout)", "swift", "main.swift"]
-#endif
+#if os(macOS)
+    // execute in docker
+    let temp = tempURL.path
+    let docker = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
+    let (status, output, error) = execute(docker + args, in: tempURL)
+#elseif os(Linux)
     let (status, output, error) = execute(args, in: tempURL)
+#endif
+    print("🤖 guild: \(message.channel), executed: \(args)")
 
     if status == 124 {
-        message.reply(with: "execution timeout")
+        message.loggedReply(with: "🤖 execution timeout: \(args)")
+    } else if status != 0 {
+        message.loggedReply(with: "🤖 execution failed with error: \(status)")
     }
 
     func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
@@ -115,7 +119,7 @@ bot.on(.messageCreate) { data in
                 try output.write(to: outputFileURL, atomically: true, encoding: .utf8)
                 message.reply(with: ["file": outputFileURL.path])
             } catch {
-                message.reply(with: "failed to write `stdout.txt` with error: \(error)")
+                message.loggedReply(with: "🤖 failed to write `stdout.txt` with error: \(error)")
             }
         } else {
             message.reply(with: codeblock(output))
@@ -124,16 +128,16 @@ bot.on(.messageCreate) { data in
     if !error.isEmpty {
         if error.count > contentsLimit {
             let code = error[..<error.index(error.startIndex, offsetBy: contentsLimit)]
-            message.reply(with: "error:\n" + codeblock(code))
+            message.reply(with: "🤖 error output:\n" + codeblock(code))
             do {
                 let errorFileURL = tempURL.appendingPathComponent("stderr.txt")
                 try error.write(to: errorFileURL, atomically: true, encoding: .utf8)
                 message.reply(with: ["file": errorFileURL.path])
             } catch {
-                message.reply(with: "failed to write `stdout.txt` with error: \(error)")
+                message.loggedReply(with: "🤖 failed to write `stdout.txt` with error: \(error)")
             }
         } else {
-            message.reply(with: "error:\n" + codeblock(error))
+            message.reply(with: "🤖 error output:\n" + codeblock(error))
         }
     }
 }
