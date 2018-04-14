@@ -37,6 +37,7 @@ bot.on(.guildAvailable) { data in
 bot.on(.messageCreate) { data in
     guard let message = data as? Message,
         message.author?.id != bot.user?.id,
+        !(message.author?.isBot ?? false),
         message.mentions.contains(where: { $0.id == bot.user?.id }) else { return }
 
     let match = regexForCodeblock.firstMatch(in: message.content)
