@@ -1,6 +1,14 @@
 import Foundation
 import Sword
 
+#if os(macOS)
+setlinebuf(Darwin.stdout)
+setlinebuf(Darwin.stderr)
+#else
+setlinebuf(Glibc.stdout)
+setlinebuf(Glibc.stderr)
+#endif
+
 let environment = ProcessInfo.processInfo.environment
 guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty else {
     fatalError("Can't find `DISCORD_TOKEN` environment variable!")
