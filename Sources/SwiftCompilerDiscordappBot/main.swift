@@ -35,7 +35,11 @@ bot.on(.messageCreate) { data in
     let code = match[1]
 
     let sessionUUID = UUID().uuidString
+#if os(macOS)
+    let tempURL = URL(fileURLWithPath: "/tmp").appendingPathComponent(sessionUUID)
+#elseif os(Linux)
     let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(sessionUUID)
+#endif
     let mainSwiftURL = tempURL.appendingPathComponent("main.swift")
     do {
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
@@ -44,7 +48,14 @@ bot.on(.messageCreate) { data in
         message.reply(with: "failed to write `main.swift` with error: \(error)")
     }
 
+#if os(macOS)
+    let temp = tempURL.path
+    // execute in docker
+    let args = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41",
+                "sh", "-c", "timeout \(timeout) swift main.swift || if [ $? -eq 124 ]; then echo timeout>&2; fi"]
+#elseif os(Linux)
     let args = ["sh", "-c", "timeout \(timeout) swift main.swift || if [ $? -eq 124 ]; then echo timeout>&2; fi"]
+#endif
     let (output, error) = execute(args, in: tempURL)
 
     var reply = ""
