@@ -7,7 +7,7 @@
 
 import Foundation
 
-func execute(_ args: [String], in directory: URL? = nil) -> (stdout: String, stderr: String) {
+func execute(_ args: [String], in directory: URL? = nil) -> (status: Int32, stdout: String, stderr: String) {
     let process = Process()
     process.launchPath = "/usr/bin/env"
     process.arguments = args
@@ -25,5 +25,5 @@ func execute(_ args: [String], in directory: URL? = nil) -> (stdout: String, std
     process.waitUntilExit()
     let stdout = String(data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
     let stderr = String(data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-    return (stdout, stderr)
+    return (process.terminationStatus, stdout, stderr)
 }

@@ -15,7 +15,7 @@ let regexForVersion = try! NSRegularExpression(pattern: "^.*\\(([^\\)]*)\\)$",
                                                options: [.anchorsMatchLines])
 
 
-let (version, _) = execute(["swift", "--version"])
+let (_, version, _) = execute(["swift", "--version"])
 let playing = regexForVersion.firstMatch(in: version).last ?? version
 
 let bot = Sword(token: discordToken)
@@ -73,11 +73,15 @@ bot.on(.messageCreate) { data in
     let temp = tempURL.path
     // execute in docker
     let args = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41",
-                "sh", "-c", "timeout \(timeout) swift main.swift || if [ $? -eq 124 ]; then echo timeout>&2; fi"]
+                "timeout", "\(timeout)", "swift", "main.swift"]
 #elseif os(Linux)
-    let args = ["sh", "-c", "timeout \(timeout) swift main.swift || if [ $? -eq 124 ]; then echo timeout>&2; fi"]
+    let args = ["timeout", "\(timeout)", "swift", "main.swift"]
 #endif
-    let (output, error) = execute(args, in: tempURL)
+    let (status, output, error) = execute(args, in: tempURL)
+
+    if status == 124 {
+        message.reply(with: "execution timeout")
+    }
 
     func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
         return """
