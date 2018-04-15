@@ -16,7 +16,7 @@ guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty els
 
 let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
 
-let regexForCodeblock = try! NSRegularExpression(pattern: "```[a-zA-Z]*\\n([\\s\\S]*?\\n)```",
+let regexForParse = try! NSRegularExpression(pattern: "^(.*?)\\n.*^```.*?\\n([\\s\\S]*?\\n)```",
                                                  options: [.anchorsMatchLines, .dotMatchesLineSeparators])
 
 let regexForVersion = try! NSRegularExpression(pattern: "^.*\\(([^\\)]*)\\)$",
@@ -44,22 +44,33 @@ bot.on(.guildAvailable) { data in
 }
 
 bot.on(.messageCreate) { data in
+    // check mentions
     guard let message = data as? Message,
         message.author?.id != bot.user?.id,
         !(message.author?.isBot ?? false),
         message.mentions.contains(where: { $0.id == bot.user?.id }) else { return }
 
+    // restrict to public channel
     guard message.channel.type == .guildText else {
         message.reply(with: "Sorry, I am not allowed to work on this channel.")
         return
     }
 
-    let match = regexForCodeblock.firstMatch(in: message.content)
-    guard match.count > 1 else {
-        return
-    }
-    let code = match[1]
+    // parse contents
+    let matches = regexForParse.firstMatch(in: message.content)
+    guard matches.count >= 3 else { return }
 
+    // codeblock
+    let swiftCode = matches[2]
+    guard !swiftCode.isEmpty else { return }
+
+    // first line is used to options for swift
+    var firstLine = message.mentions.reduce(matches[1]) {
+        $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
+    }
+    let options = firstLine.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+
+    // create main.swift
     let sessionUUID = UUID().uuidString
 #if os(macOS)
     let tempURL = URL(fileURLWithPath: "/tmp").appendingPathComponent(sessionUUID)
@@ -69,7 +80,7 @@ bot.on(.messageCreate) { data in
     let mainSwiftURL = tempURL.appendingPathComponent("main.swift")
     do {
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
-        try code.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
+        try swiftCode.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
     } catch {
         message.loggedReply(with: "failed to write `main.swift` with error: \(error)")
         return
@@ -83,7 +94,8 @@ bot.on(.messageCreate) { data in
         }
     }
 
-    let args = ["timeout", "--signal=KILL", "\(timeout)", "swift", "main.swift"]
+    // execute swift
+    let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options + ["main.swift"]
     message.log("executed: \(args)")
 #if os(macOS)
     // execute in docker
@@ -94,6 +106,7 @@ bot.on(.messageCreate) { data in
     let (status, output, error) = execute(args, in: tempURL)
 #endif
 
+    // check exit status
     if status == 9 {
         message.log("execution timeout: \(args)")
     } else if status != 0 {
@@ -103,13 +116,9 @@ bot.on(.messageCreate) { data in
         message.log("exit status: \(status)")
     }
 
+    // reply
     func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
-        return """
-            ```
-            \(string)
-            ```
-
-            """
+        return "```\n\(string)```\n"
     }
 
     func string(from status: Int32) -> String {
