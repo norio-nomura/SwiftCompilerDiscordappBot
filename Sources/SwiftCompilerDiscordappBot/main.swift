@@ -9,45 +9,65 @@ setlinebuf(Glibc.stdout)
 setlinebuf(Glibc.stderr)
 #endif
 
-// MARK: configuration
-let environment = ProcessInfo.processInfo.environment
-guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty else {
-    fatalError("Can't find `DISCORD_TOKEN` environment variable!")
+struct App {
+    static let discordToken = { () -> String in
+        guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty else {
+            fatalError("Can't find `DISCORD_TOKEN` environment variable!")
+        }
+        return discordToken
+    }()
+    static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
+    static let version = execute(["swift", "--version"]).stdout
+    static let playing = regexForVersion.firstMatch(in: version).last ?? version
+    static let nickname = playing.replacingOccurrences(of: "-RELEASE", with: "")
+
+    static let bot = Sword(token: discordToken)
+
+    static func parse(_ message: Message) -> (options: [String], swiftCode: String) {
+        // MARK: first line is used to options for swift
+        let mentionedLine = regexForMentionedLine.firstMatch(in: message.content)[1]
+        let optionsString = message.mentions.reduce(mentionedLine) {
+            // remove mentions
+            $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
+        }
+        let options = optionsString.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+
+        // MARK: parse codeblock
+        let swiftCode = regexForCodeblock.firstMatch(in: message.content).last ?? ""
+
+        return (options, swiftCode)
+    }
+
+    // private
+    private static let environment = ProcessInfo.processInfo.environment
+    private static let regexForVersion = regex(pattern: "^.*\\(([^\\)]*)\\)$", options: .anchorsMatchLines)
+    private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
+    private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(bot.user!.id)>(.*?)$")
+
+    private static func regex(
+        pattern: String,
+        options: NSRegularExpression.Options = [.anchorsMatchLines, .dotMatchesLineSeparators]
+        ) -> NSRegularExpression {
+        return try! .init(pattern: pattern, options: options)
+    }
 }
 
-let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
-
 // MARK: edit status
-let regexForVersion = try! NSRegularExpression(pattern: "^.*\\(([^\\)]*)\\)$",
-                                               options: [.anchorsMatchLines])
-
-
-let (_, version, _) = execute(["swift", "--version"])
-let playing = regexForVersion.firstMatch(in: version).last ?? version
-
-let bot = Sword(token: discordToken)
-
-bot.editStatus(to: "online", playing: playing)
-print("🤖 is online and playing \(playing).")
+App.bot.editStatus(to: "online", playing: App.playing)
+print("🤖 is online and playing \(App.playing).")
 
 // MARK: update nickname
-bot.on(.guildAvailable) { data in
+App.bot.on(.guildAvailable) { data in
     guard let guild = data as? Guild else { return }
     print("🤖 Guild Available: \(guild.name)")
-    guild.setNickname(to: playing.replacingOccurrences(of: "-RELEASE", with: "")) { error in
+    guild.setNickname(to: App.nickname) { error in
         if let error = error {
             print("🤖 failed to change nickname in guild: \(guild.name), error: \(error)")
         }
     }
 }
 
-// MARK: regular expressions
-let regexForFirstLine = try! NSRegularExpression(pattern: "^(.*?)$",
-                                                 options: [.anchorsMatchLines, .dotMatchesLineSeparators])
-let regexForCodeblock = try! NSRegularExpression(pattern: "^```.*?\\n([\\s\\S]*?\\n)```",
-                                                 options: [.anchorsMatchLines, .dotMatchesLineSeparators])
-
-bot.on(.messageCreate) { data in
+App.bot.on(.messageCreate) { [unowned bot = App.bot] data in
     // MARK: check mentions
     guard let message = data as? Message,
         message.author?.id != bot.user?.id,
@@ -62,7 +82,8 @@ bot.on(.messageCreate) { data in
 
     func replyHelp() {
         message.reply(with: """
-            ```Usage:
+            ```
+            Usage:
               @\((bot.user?.username)!) [SWIFT_OPTIONS]
               `\u{200b}`\u{200b}`\u{200b}
               [Swift Code]
@@ -72,17 +93,9 @@ bot.on(.messageCreate) { data in
             """)
     }
 
-    // MARK: first line is used to options for swift
-    let firstLine = regexForFirstLine.firstMatch(in: message.content)[1]
-    var optionsString = message.mentions.reduce(firstLine) {
-        // remove mentions
-        $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
-    }
-    var options = optionsString.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-
-    // MARK: parse codeblock
-    let swiftCode = regexForCodeblock.firstMatch(in: message.content).last ?? ""
-
+    var options: [String]
+    let swiftCode: String
+    (options, swiftCode) = App.parse(message)
     guard !(swiftCode.isEmpty && options.isEmpty) else {
         replyHelp()
         return
@@ -124,7 +137,7 @@ bot.on(.messageCreate) { data in
     }
 
     // MARK: execute swift
-    let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options
+    let args = ["timeout", "--signal=KILL", "\(App.timeout)", "swift"] + options
     message.log("executed: \(args)")
 #if os(macOS)
     // execute in docker
@@ -192,4 +205,4 @@ bot.on(.messageCreate) { data in
     }
 }
 
-bot.connect()
+App.bot.connect()
