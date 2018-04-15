@@ -63,7 +63,7 @@ bot.on(.messageCreate) { data in
     func replyHelp() {
         message.reply(with: """
             ```Usage:
-              @\((bot.user?.username)!) [SWIFTC_OPTIONS]
+              @\((bot.user?.username)!) [SWIFT_OPTIONS]
               `\u{200b}`\u{200b}`\u{200b}
               [Swift Code]
               `\u{200b}`\u{200b}`\u{200b}
