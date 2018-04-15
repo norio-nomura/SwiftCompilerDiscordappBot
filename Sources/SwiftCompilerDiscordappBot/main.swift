@@ -9,6 +9,7 @@ setlinebuf(Glibc.stdout)
 setlinebuf(Glibc.stderr)
 #endif
 
+// MARK: configuration
 let environment = ProcessInfo.processInfo.environment
 guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty else {
     fatalError("Can't find `DISCORD_TOKEN` environment variable!")
@@ -16,9 +17,7 @@ guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty els
 
 let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
 
-let regexForParse = try! NSRegularExpression(pattern: "^(.*?)\\n.*^```.*?\\n([\\s\\S]*?\\n)```",
-                                                 options: [.anchorsMatchLines, .dotMatchesLineSeparators])
-
+// MARK: edit status
 let regexForVersion = try! NSRegularExpression(pattern: "^.*\\(([^\\)]*)\\)$",
                                                options: [.anchorsMatchLines])
 
@@ -31,10 +30,9 @@ let bot = Sword(token: discordToken)
 bot.editStatus(to: "online", playing: playing)
 print("🤖 is online and playing \(playing).")
 
+// MARK: update nickname
 bot.on(.guildAvailable) { data in
-    guard let guild = data as? Guild else {
-        return
-    }
+    guard let guild = data as? Guild else { return }
     print("🤖 Guild Available: \(guild.name)")
     guild.setNickname(to: playing.replacingOccurrences(of: "-RELEASE", with: "")) { error in
         if let error = error {
@@ -43,46 +41,64 @@ bot.on(.guildAvailable) { data in
     }
 }
 
+// MARK: regular expressions
+let regexForFirstLine = try! NSRegularExpression(pattern: "^(.*?)$",
+                                                 options: [.anchorsMatchLines, .dotMatchesLineSeparators])
+let regexForCodeblock = try! NSRegularExpression(pattern: "^```.*?\\n([\\s\\S]*?\\n)```",
+                                                 options: [.anchorsMatchLines, .dotMatchesLineSeparators])
+
 bot.on(.messageCreate) { data in
-    // check mentions
+    // MARK: check mentions
     guard let message = data as? Message,
         message.author?.id != bot.user?.id,
         !(message.author?.isBot ?? false),
         message.mentions.contains(where: { $0.id == bot.user?.id }) else { return }
 
-    // restrict to public channel
+    // MARK: restrict to public channel
     guard message.channel.type == .guildText else {
         message.reply(with: "Sorry, I am not allowed to work on this channel.")
         return
     }
 
-    // parse contents
-    let matches = regexForParse.firstMatch(in: message.content)
-    guard matches.count >= 3 else { return }
+    func replyHelp() {
+        message.reply(with: """
+            ```Usage:
+              @\((bot.user?.username)!) [SWIFTC_OPTIONS]
+              `\u{200b}`\u{200b}`\u{200b}
+              [Swift Code]
+              `\u{200b}`\u{200b}`\u{200b}
 
-    // codeblock
-    let swiftCode = matches[2]
-    guard !swiftCode.isEmpty else { return }
+            ```
+            """)
+    }
 
-    // first line is used to options for swift
-    var firstLine = message.mentions.reduce(matches[1]) {
+    // MARK: first line is used to options for swift
+    let firstLine = regexForFirstLine.firstMatch(in: message.content)[1]
+    var optionsString = message.mentions.reduce(firstLine) {
+        // remove mentions
         $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
     }
-    let options = firstLine.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+    var options = optionsString.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
 
-    // create main.swift
+    // MARK: parse codeblock
+    let swiftCode = regexForCodeblock.firstMatch(in: message.content).last ?? ""
+
+    guard !(swiftCode.isEmpty && options.isEmpty) else {
+        replyHelp()
+        return
+    }
+
+    // MARK: create temporary directory
     let sessionUUID = UUID().uuidString
 #if os(macOS)
     let tempURL = URL(fileURLWithPath: "/tmp").appendingPathComponent(sessionUUID)
 #elseif os(Linux)
     let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(sessionUUID)
 #endif
-    let mainSwiftURL = tempURL.appendingPathComponent("main.swift")
     do {
         try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
-        try swiftCode.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
     } catch {
-        message.loggedReply(with: "failed to write `main.swift` with error: \(error)")
+        message.loggedReply(with: "failed to create temoprary directory with error: \(error)")
         return
     }
 
@@ -94,8 +110,21 @@ bot.on(.messageCreate) { data in
         }
     }
 
-    // execute swift
-    let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options + ["main.swift"]
+    // MARK: create main.swift
+    if !swiftCode.isEmpty {
+        let mainSwiftURL = tempURL.appendingPathComponent("main.swift")
+        do {
+            try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
+            try swiftCode.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
+            options.append("main.swift")
+        } catch {
+            message.loggedReply(with: "failed to write `main.swift` with error: \(error)")
+            return
+        }
+    }
+
+    // MARK: execute swift
+    let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options
     message.log("executed: \(args)")
 #if os(macOS)
     // execute in docker
@@ -106,7 +135,7 @@ bot.on(.messageCreate) { data in
     let (status, output, error) = execute(args, in: tempURL)
 #endif
 
-    // check exit status
+    // MARK: check exit status
     if status == 9 {
         message.log("execution timeout: \(args)")
     } else if status != 0 {
@@ -114,9 +143,12 @@ bot.on(.messageCreate) { data in
             message.reply(with: "exit status: \(status)")
         }
         message.log("exit status: \(status)")
+    } else if output.isEmpty && error.isEmpty {
+        message.reply(with: "no outputs")
+        return
     }
 
-    // reply
+    // MARK: reply
     func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
         return "```\n\(string)```\n"
     }
