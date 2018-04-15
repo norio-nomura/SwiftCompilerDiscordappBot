@@ -5,6 +5,7 @@
 //  Created by Norio Nomura on 4/12/18.
 //
 
+import Dispatch
 import Foundation
 
 func execute(_ args: [String], in directory: URL? = nil) -> (status: Int32, stdout: String, stderr: String) {
@@ -21,9 +22,14 @@ func execute(_ args: [String], in directory: URL? = nil) -> (status: Int32, stdo
     let stdoutPipe = Pipe(), stderrPipe = Pipe()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
+    let group = DispatchGroup(), queue = DispatchQueue.global()
+    var stdoutData: Data?, stderrData: Data?
     process.launch()
-    process.waitUntilExit()
-    let stdout = String(data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-    let stderr = String(data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+    queue.async(group: group) { process.waitUntilExit() }
+    queue.async(group: group) { stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile() }
+    queue.async(group: group) { stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile() }
+    group.wait()
+    let stdout = stdoutData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+    let stderr = stderrData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
     return (process.terminationStatus, stdout, stderr)
 }
