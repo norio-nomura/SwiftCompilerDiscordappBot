@@ -67,7 +67,8 @@ App.bot.on(.guildAvailable) { data in
     }
 }
 
-App.bot.on(.messageCreate) { [unowned bot = App.bot] data in
+App.bot.on(.messageCreate) { [weak bot = App.bot] data in
+    guard let bot = bot else { return }
     // MARK: check mentions
     guard let message = data as? Message,
         message.author?.id != bot.user?.id,
@@ -203,6 +204,11 @@ App.bot.on(.messageCreate) { [unowned bot = App.bot] data in
             message.reply(with: statusMessage + "error output:\n" + codeblock(error))
         }
     }
+}
+
+signal(SIGTERM) { _ in
+    App.bot.disconnect()
+    exit(EXIT_SUCCESS)
 }
 
 App.bot.connect()
