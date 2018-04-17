@@ -17,6 +17,8 @@ func execute(_ args: [String], in directory: URL? = nil) -> (status: Int32, stdo
     }
     var environment = ProcessInfo.processInfo.environment
     environment["DISCORD_TOKEN"] = nil
+    environment["DYNO"] = nil
+    environment["PORT"] = nil
     environment["TIMEOUT"] = nil
     process.environment = environment
     let stdoutPipe = Pipe(), stderrPipe = Pipe()
