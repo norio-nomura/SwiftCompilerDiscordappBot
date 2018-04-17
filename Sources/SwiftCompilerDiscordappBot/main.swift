@@ -17,9 +17,9 @@ struct App {
         return discordToken
     }()
     static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
-    static let version = execute(["swift", "--version"]).stdout
-    static let playing = regexForVersion.firstMatch(in: version).last ?? version
-    static let nickname = playing.replacingOccurrences(of: "-RELEASE", with: "")
+    static let playing = environment["SWIFT_VERSION"].map { "swift-" + $0 } ?? "unkown swift build"
+    static let versionInfo = execute(["swift", "--version"]).stdout
+    static let nickname = regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 } ?? ""
 
     static let bot = Sword(token: discordToken)
 
@@ -40,7 +40,8 @@ struct App {
 
     // private
     private static let environment = ProcessInfo.processInfo.environment
-    private static let regexForVersion = regex(pattern: "^.*\\(([^\\)]*)\\)$", options: .anchorsMatchLines)
+    private static let regexForVersionInfo = regex(pattern: "^(Apple )?Swift version (\\S+) \\(.*\\)$",
+                                                   options: .anchorsMatchLines)
     private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
     private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(bot.user!.id)>(.*?)$")
 
