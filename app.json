@@ -1,0 +1,20 @@
+{
+  "name": "Swift Compiler Discord Bot",
+  "keywords": [
+    "swift",
+    "compiler",
+    "discord",
+    "bot"
+  ],
+  "repository": "https://github.com/norio-nomura/SwiftCompilerDiscordappBot",
+  "stack": "container",
+  "env": {
+    "DISCORD_TOKEN": {
+      "description": "A secret key for verifying the integrity of signed cookies.",
+      "required": "true"
+    },
+    "TIMEOUT": {
+      "required": "false"
+    }
+  }
+}

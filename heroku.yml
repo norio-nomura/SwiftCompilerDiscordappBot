@@ -1,0 +1,6 @@
+build:
+  docker:
+    worker: Dockerfile
+  config:
+    DOCKER_IMAGE: norionomura/swift:20180416a
+
