@@ -103,6 +103,9 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
         return
     }
 
+    // Trigger Typing Indicator
+    App.bot.setTyping(for: message.channel.id)
+
     // MARK: create temporary directory
     let sessionUUID = UUID().uuidString
 #if os(macOS)
