@@ -176,12 +176,12 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
     if !output.isEmpty {
         let statusMessage = status != 0 ? (string(from: status) + "output:\n") : ""
         if output.count > contentsLimit {
-            let code = output[..<output.index(output.startIndex, offsetBy: contentsLimit)]
-            message.reply(with: statusMessage + codeblock(code))
             do {
+                let code = output[..<output.index(output.startIndex, offsetBy: contentsLimit)]
+                let content = statusMessage + codeblock(code)
                 let outputFileURL = tempURL.appendingPathComponent("stdout.txt")
                 try output.write(to: outputFileURL, atomically: true, encoding: .utf8)
-                message.reply(with: ["file": outputFileURL.path])
+                message.reply(with: ["content": content, "file": outputFileURL.path])
             } catch {
                 message.loggedReply(with: "failed to write `stdout.txt` with error: \(error)")
             }
@@ -192,12 +192,12 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
     if !error.isEmpty {
         let statusMessage = status != 0 && output.isEmpty ? string(from: status) : ""
         if error.count > contentsLimit {
-            let code = error[..<error.index(error.startIndex, offsetBy: contentsLimit)]
-            message.reply(with: statusMessage + "error output:\n" + codeblock(code))
             do {
+                let code = error[..<error.index(error.startIndex, offsetBy: contentsLimit)]
+                let content = statusMessage + "error output:\n" + codeblock(code)
                 let errorFileURL = tempURL.appendingPathComponent("stderr.txt")
                 try error.write(to: errorFileURL, atomically: true, encoding: .utf8)
-                message.reply(with: ["file": errorFileURL.path])
+                message.reply(with: ["content": content, "file": errorFileURL.path])
             } catch {
                 message.loggedReply(with: "failed to write `stdout.txt` with error: \(error)")
             }
