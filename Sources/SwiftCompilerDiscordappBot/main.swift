@@ -140,7 +140,6 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
 
     // MARK: execute swift
     let args = ["timeout", "--signal=KILL", "\(App.timeout)", "swift"] + options
-    message.log("executed: \(args)")
 #if os(macOS)
     // execute in docker
     let temp = tempURL.path
@@ -150,60 +149,72 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
     let (status, output, error) = execute(args, in: tempURL)
 #endif
 
+    message.log("executed: \(args), status: \(status)")
+
+    // build message
+    var attachOutput = false, attachError = false
+    var content = ""
+    var remain = 2000
+    func append<S: StringProtocol>(_ string: S, _ count: Int = 0) {
+        content += string
+        remain -= count == 0 ? string.count : count
+    }
     // MARK: check exit status
     if status == 9 {
-        message.log("execution timeout: \(args)")
+        append("execution timeout with ")
     } else if status != 0 {
-        if output.isEmpty && error.isEmpty {
-            message.reply(with: "exit status: \(status)")
-        }
-        message.log("exit status: \(status)")
-    } else if output.isEmpty && error.isEmpty {
-        message.reply(with: "no outputs")
-        return
+        append("exit status: \(status) with ")
     }
-
-    // MARK: reply
-    func codeblock<S: CustomStringConvertible>(_ string: S) -> String {
-        return "```\n\(string)```\n"
+    if output.isEmpty && error.isEmpty {
+        append("no output")
     }
-
-    func string(from status: Int32) -> String {
-        return status == 9 ? "execution timeout with " : "exit status: \(status), "
-    }
-
-    let contentsLimit = 1950
     if !output.isEmpty {
-        let statusMessage = status != 0 ? (string(from: status) + "output:\n") : ""
-        if output.count > contentsLimit {
-            do {
-                let code = output[..<output.index(output.startIndex, offsetBy: contentsLimit)]
-                let content = statusMessage + codeblock(code)
-                let outputFileURL = tempURL.appendingPathComponent("stdout.txt")
-                try output.write(to: outputFileURL, atomically: true, encoding: .utf8)
-                message.reply(with: ["content": content, "file": outputFileURL.path])
-            } catch {
-                message.loggedReply(with: "failed to write `stdout.txt` with error: \(error)")
-            }
+        let header = status != 0 ? "stdout:```\n" : "```\n"
+        let footer = "```"
+        let limit = remain - header.count - footer.count
+        let outputLength = output.count
+        if outputLength > limit {
+            let chopped = output[..<output.index(output.startIndex, offsetBy: limit)]
+            append(header + chopped + footer, header.count + limit + footer.count)
+            attachOutput = true
         } else {
-            message.reply(with: statusMessage + codeblock(output))
+            append(header + output + footer, header.count + outputLength + footer.count)
         }
     }
     if !error.isEmpty {
-        let statusMessage = status != 0 && output.isEmpty ? string(from: status) : ""
-        if error.count > contentsLimit {
-            do {
-                let code = error[..<error.index(error.startIndex, offsetBy: contentsLimit)]
-                let content = statusMessage + "error output:\n" + codeblock(code)
-                let errorFileURL = tempURL.appendingPathComponent("stderr.txt")
-                try error.write(to: errorFileURL, atomically: true, encoding: .utf8)
-                message.reply(with: ["content": content, "file": errorFileURL.path])
-            } catch {
-                message.loggedReply(with: "failed to write `stdout.txt` with error: \(error)")
+        let header = "stderr:```\n"
+        let footer = "```"
+        if remain > header.count + footer.count {
+            let limit = remain - header.count - footer.count
+            let errorLength = error.count
+            if errorLength > limit {
+                let chopped = error[..<error.index(error.startIndex, offsetBy: limit)]
+                append(header + chopped + footer, header.count + limit + footer.count)
+                attachError = true
+            } else {
+                append(header + error + footer, header.count + errorLength + footer.count)
             }
         } else {
-            message.reply(with: statusMessage + "error output:\n" + codeblock(error))
+            attachError = true
         }
+    }
+    message.reply(with: content)
+
+    // post files
+    func reply(_ string: String, as filename: String) {
+        do {
+            let outputFileURL = tempURL.appendingPathComponent(filename)
+            try string.write(to: outputFileURL, atomically: true, encoding: .utf8)
+            message.reply(with: ["file": outputFileURL.path])
+        } catch {
+            message.loggedReply(with: "failed to write `\(filename)` with error: \(error)")
+        }
+    }
+    if attachOutput {
+        reply(output, as: "stdout.txt")
+    }
+    if attachError {
+        reply(error, as: "stderr.txt")
     }
 }
 
