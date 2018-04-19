@@ -48,6 +48,7 @@ struct App {
     // Replied Requests
     static var repliedRequests = RepliedRequests()
     struct RepliedRequests {
+        // swiftlint:disable:next nesting
         typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
         private var answeredMessages = [Snowflake: Replies]()
         private let queue = DispatchQueue(label: "answeredMessages")
@@ -66,10 +67,10 @@ struct App {
         let description: String
     }
 
-    // executionResult
+    // ExecutionResult // swiftlint:disable:next line_length
     typealias ExecutionResult = (args: [String], status: Int32, content: String, stdoutFile: String?, stderrFile: String?)
 
-    static func executeSwift(
+    static func executeSwift( // swiftlint:disable:this function_body_length
         with options: [String],
         _ swiftCode: String,
         handler: (ExecutionResult) -> Void) throws {
