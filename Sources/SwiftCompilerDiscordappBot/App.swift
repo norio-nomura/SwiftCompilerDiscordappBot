@@ -26,6 +26,10 @@ struct App {
     static let nickname = regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 } ?? ""
     static let playing = environment["SWIFT_VERSION"].map { "swift-" + $0 } ?? "unkown swift build"
 
+    static func log(_ message: String) {
+        print("🤖 " + message)
+    }
+
     static func parse(_ message: Message) -> (options: [String], swiftCode: String) {
         // MARK: first line is used to options for swift
         let mentionedLine = regexForMentionedLine.firstMatch(in: message.content)[1]
@@ -45,18 +49,36 @@ struct App {
         let description: String
     }
 
+    // executionResult
+    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdoutFile: String?, stderrFile: String?)
+
     static func executeSwift(
         with options: [String],
         _ swiftCode: String,
-        in directory: URL
-        ) throws -> (args: [String], status: Int32, content: String, files: [String]) {
+        handler: (ExecutionResult) -> Void) throws {
         var options = options
+
+        // MARK: create temporary directory
+        let sessionUUID = UUID().uuidString
+#if os(macOS)
+        let directory = URL(fileURLWithPath: "/tmp").appendingPathComponent(sessionUUID)
+#elseif os(Linux)
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(sessionUUID)
+#endif
 
         // create directory
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         } catch {
             throw Error(description: "failed to create temoprary directory with error: \(error)")
+        }
+
+        defer {
+            do {
+                try FileManager.default.removeItem(at: directory)
+            } catch {
+                App.log("failed to remove temporary directory with error: \(error)")
+            }
         }
 
         // create main.swift
@@ -76,7 +98,7 @@ struct App {
         // execute in docker
         let temp = directory.path
         let docker = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
-        let (status, output, error) = execute(docker + args, in: directory)
+        let (status, stdout, stderr) = execute(docker + args, in: directory)
 #elseif os(Linux)
         let (status, output, error) = execute(args, in: directory)
 #endif
@@ -96,34 +118,34 @@ struct App {
         } else if status != 0 {
             append("exit status: \(status) with ")
         }
-        if output.isEmpty && error.isEmpty {
+        if stdout.isEmpty && stderr.isEmpty {
             append("no output")
         }
-        if !output.isEmpty {
+        if !stdout.isEmpty {
             let header = status != 0 ? "stdout:```\n" : "```\n"
             let footer = "```"
             let limit = remain - header.count - footer.count
-            let outputLength = output.count
+            let outputLength = stdout.count
             if outputLength > limit {
-                let chopped = output[..<output.index(output.startIndex, offsetBy: limit)]
+                let chopped = stdout[..<stdout.index(stdout.startIndex, offsetBy: limit)]
                 append(header + chopped + footer, header.count + limit + footer.count)
                 attachOutput = true
             } else {
-                append(header + output + footer, header.count + outputLength + footer.count)
+                append(header + stdout + footer, header.count + outputLength + footer.count)
             }
         }
-        if !error.isEmpty {
+        if !stderr.isEmpty {
             let header = "stderr:```\n"
             let footer = "```"
             if remain > header.count + footer.count {
                 let limit = remain - header.count - footer.count
-                let errorLength = error.count
+                let errorLength = stderr.count
                 if errorLength > limit {
-                    let chopped = error[..<error.index(error.startIndex, offsetBy: limit)]
+                    let chopped = stderr[..<stderr.index(stderr.startIndex, offsetBy: limit)]
                     append(header + chopped + footer, header.count + limit + footer.count)
                     attachError = true
                 } else {
-                    append(header + error + footer, header.count + errorLength + footer.count)
+                    append(header + stderr + footer, header.count + errorLength + footer.count)
                 }
             } else {
                 attachError = true
@@ -132,22 +154,18 @@ struct App {
 
         // build files
         var files = [String]()
-        func create(filename: String, with content: String) throws {
+        func create(filename: String, with content: String) throws -> String {
             do {
                 let outputFileURL = directory.appendingPathComponent(filename)
                 try content.write(to: outputFileURL, atomically: true, encoding: .utf8)
-                files.append(outputFileURL.path)
+                return outputFileURL.path
             } catch {
                 throw Error(description: "failed to write `\(filename)` with error: \(error)")
             }
         }
-        if attachOutput {
-            try create(filename: "stdout.txt", with: output)
-        }
-        if attachError {
-            try create(filename: "stderr.txt", with: error)
-        }
-        return (args, status, content, files)
+        let stdoutFile = attachOutput ? try create(filename: "stdout.txt", with: stdout) : nil
+        let stderrFile = attachError ? try create(filename: "stderr.txt", with: stderr) : nil
+        handler((args, status, content, stdoutFile, stderrFile))
     }
 
     // private

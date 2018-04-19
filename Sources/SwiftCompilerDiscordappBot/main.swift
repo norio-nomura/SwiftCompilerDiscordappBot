@@ -9,21 +9,22 @@ setlinebuf(Glibc.stdout)
 setlinebuf(Glibc.stderr)
 #endif
 
-// MARK: edit status
+// MARK: - edit status
 App.bot.editStatus(to: "online", playing: App.playing)
-print("🤖 is online and playing \(App.playing).")
+App.log("is online and playing \(App.playing).")
 
-// MARK: update nickname
+// MARK: - update nickname
 App.bot.on(.guildAvailable) { data in
     guard let guild = data as? Guild else { return }
-    print("🤖 Guild Available: \(guild.name)")
+    App.log("Guild Available: \(guild.name)")
     guild.setNickname(to: App.nickname) { error in
         if let error = error {
-            print("🤖 failed to change nickname in guild: \(guild.name), error: \(error)")
+            App.log("failed to change nickname in guild: \(guild.name), error: \(error)")
         }
     }
 }
 
+// MARK: - MessageCreate
 App.bot.on(.messageCreate) { [weak bot = App.bot] data in
     guard let bot = bot else { return }
     // MARK: check mentions
@@ -38,37 +39,27 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
         return
     }
 
+    // MARK: parse message
     let (options, swiftCode) = App.parse(message)
-    guard !(swiftCode.isEmpty && options.isEmpty) else {
+    guard !(options.isEmpty && swiftCode.isEmpty) else {
         message.reply(with: App.helpMessage)
         return
     }
 
-    // Trigger Typing Indicator
+    // MARK: Trigger Typing Indicator
     App.bot.setTyping(for: message.channel.id)
 
-    // MARK: create temporary directory
-    let sessionUUID = UUID().uuidString
-#if os(macOS)
-    let tempURL = URL(fileURLWithPath: "/tmp").appendingPathComponent(sessionUUID)
-#elseif os(Linux)
-    let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(sessionUUID)
-#endif
-
-    defer {
-        do {
-            try FileManager.default.removeItem(at: tempURL)
-        } catch {
-            message.loggedReply(with: "failed to remove temporary directory with error: \(error)")
-        }
-    }
-
     do {
-        let (args, status, content, files) = try App.executeSwift(with: options, swiftCode, in: tempURL)
-        message.log("executed: \(args), status: \(status)")
-        message.reply(with: content)
-        files.forEach {
-            message.reply(with: ["file": $0])
+        try App.executeSwift(with: options, swiftCode) { result in
+            let (args, status, content, stdoutFile, stderrFile) = result
+            message.log("executed: \(args), status: \(status)")
+            message.reply(with: content)
+            if let stdoutFile = stdoutFile {
+                message.reply(with: ["file": stdoutFile])
+            }
+            if let stderrFile = stderrFile {
+                message.reply(with: ["file": stderrFile])
+            }
         }
     } catch {
         message.loggedReply(with: "\(error)")

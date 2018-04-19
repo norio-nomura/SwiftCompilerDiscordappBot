@@ -9,7 +9,7 @@ import Sword
 
 extension Message {
     func log(_ message: String) {
-        print("🤖 \(id): " + message)
+        App.log("\(id): " + message)
     }
 
     func loggedReply(
