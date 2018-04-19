@@ -117,7 +117,7 @@ struct App {
         let docker = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
         let (status, stdout, stderr) = execute(docker + args, in: directory)
 #elseif os(Linux)
-        let (status, output, error) = execute(args, in: directory)
+        let (status, stdout, stderr) = execute(args, in: directory)
 #endif
         // build content
         var attachOutput = false, attachError = false
