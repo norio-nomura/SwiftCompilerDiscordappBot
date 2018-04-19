@@ -10,18 +10,21 @@ import Foundation
 import Sword
 
 struct App {
-    static let discordToken = { () -> String in
-        guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty else {
-            fatalError("Can't find `DISCORD_TOKEN` environment variable!")
-        }
-        return discordToken
-    }()
-    static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
-    static let playing = environment["SWIFT_VERSION"].map { "swift-" + $0 } ?? "unkown swift build"
-    static let versionInfo = execute(["swift", "--version"]).stdout
-    static let nickname = regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 } ?? ""
-
     static let bot = Sword(token: discordToken)
+    static var helpMessage: String {
+        return """
+        ```
+        Usage:
+        @\((bot.user?.username)!) [SWIFT_OPTIONS]
+        `\u{200b}`\u{200b}`\u{200b}
+        [Swift Code]
+        `\u{200b}`\u{200b}`\u{200b}
+
+        ```
+        """
+    }
+    static let nickname = regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 } ?? ""
+    static let playing = environment["SWIFT_VERSION"].map { "swift-" + $0 } ?? "unkown swift build"
 
     static func parse(_ message: Message) -> (options: [String], swiftCode: String) {
         // MARK: first line is used to options for swift
@@ -36,19 +39,6 @@ struct App {
         let swiftCode = regexForCodeblock.firstMatch(in: message.content).last ?? ""
 
         return (options, swiftCode)
-    }
-
-    static var helpMessage: String {
-        return """
-            ```
-            Usage:
-            @\((bot.user?.username)!) [SWIFT_OPTIONS]
-            `\u{200b}`\u{200b}`\u{200b}
-            [Swift Code]
-            `\u{200b}`\u{200b}`\u{200b}
-
-            ```
-            """
     }
 
     struct Error: Swift.Error, CustomStringConvertible {
@@ -161,11 +151,19 @@ struct App {
     }
 
     // private
+    private static let discordToken = { () -> String in
+        guard let discordToken = environment["DISCORD_TOKEN"], !discordToken.isEmpty else {
+            fatalError("Can't find `DISCORD_TOKEN` environment variable!")
+        }
+        return discordToken
+    }()
     private static let environment = ProcessInfo.processInfo.environment
     private static let regexForVersionInfo = regex(pattern: "^(Apple )?Swift version (\\S+) \\(.*\\)$",
                                                    options: .anchorsMatchLines)
     private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
     private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(bot.user!.id)>(.*?)$")
+    private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
+    private static let versionInfo = execute(["swift", "--version"]).stdout
 
     private static func regex(
         pattern: String,
