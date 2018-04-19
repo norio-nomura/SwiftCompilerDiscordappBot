@@ -125,10 +125,14 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
                         channel.deleteMessage(stderrID)
                     }
                     if let stdoutFile = stdoutFile {
-                        message.reply(with: ["file": stdoutFile])
+                        message.reply(with: ["file": stdoutFile]) { reply, _ in
+                            App.repliedRequests[message.id].stdoutID = reply?.id
+                        }
                     }
                     if let stderrFile = stderrFile {
-                        message.reply(with: ["file": stderrFile])
+                        message.reply(with: ["file": stderrFile]) { reply, _ in
+                            App.repliedRequests[message.id].stdoutID = reply?.id
+                        }
                     }
                 } else {
                     switch (replies.stdoutID, stdoutFile) {
