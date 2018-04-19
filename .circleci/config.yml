@@ -3,23 +3,32 @@ aliases:
     - checkout
     - run: apt-get update && apt-get install -y libsodium-dev
     - run: swift build
+    - run: mkdir -p build/reports/
+    - run: swiftlint lint --reporter junit > build/reports/junit.xml
+    - store_test_results:
+        path: build/reports/
+
+  - &steps-for-linux-without-swiftlint
+    - checkout
+    - run: apt-get update && apt-get install -y libsodium-dev
+    - run: swift build
 
 version: 2
 jobs:
   linux_swift_4.0.3:
     docker:
-      - image: norionomura/swift:403
+      - image: norionomura/swiftlint:swift-4.0.3
     steps: *steps-for-linux
 
   linux_swift_4.1:
     docker:
-      - image: norionomura/swift:41
+      - image: norionomura/swiftlint:swift-4.1
     steps: *steps-for-linux
 
   linux_swift_4.2:
     docker:
       - image: norionomura/swift:20180418a
-    steps: *steps-for-linux
+    steps: *steps-for-linux-without-swiftlint
 
 workflows:
   version: 2

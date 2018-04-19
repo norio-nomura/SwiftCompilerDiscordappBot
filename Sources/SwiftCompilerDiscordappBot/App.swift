@@ -211,7 +211,6 @@ struct App {
         pattern: String,
         options: NSRegularExpression.Options = [.anchorsMatchLines, .dotMatchesLineSeparators]
         ) -> NSRegularExpression {
-        return try! .init(pattern: pattern, options: options)
+        return try! .init(pattern: pattern, options: options) // swiftlint:disable:this force_try
     }
 }
-
