@@ -47,9 +47,8 @@ struct App {
 
     // Replied Requests
     static var repliedRequests = RepliedRequests()
+    typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
     struct RepliedRequests {
-        // swiftlint:disable:next nesting
-        typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
         private var answeredMessages = [Snowflake: Replies]()
         private let queue = DispatchQueue(label: "answeredMessages")
         subscript(messageID: Snowflake) -> Replies {
