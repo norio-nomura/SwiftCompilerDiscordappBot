@@ -117,13 +117,13 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
                 } else if !isSomeMessagesArePostedSinceBotReplied {
                     message.reply(with: content)
                 }
+                if let stdoutID = replies.stdoutID {
+                    channel.deleteMessage(stdoutID)
+                }
+                if let stderrID = replies.stderrID {
+                    channel.deleteMessage(stderrID)
+                }
                 if !isSomeMessagesArePostedSinceBotReplied {
-                    if let stdoutID = replies.stdoutID {
-                        channel.deleteMessage(stdoutID)
-                    }
-                    if let stderrID = replies.stderrID {
-                        channel.deleteMessage(stderrID)
-                    }
                     if let stdoutFile = stdoutFile {
                         message.reply(with: ["file": stdoutFile]) { reply, _ in
                             App.repliedRequests[message.id].stdoutID = reply?.id
@@ -133,19 +133,6 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
                         message.reply(with: ["file": stderrFile]) { reply, _ in
                             App.repliedRequests[message.id].stdoutID = reply?.id
                         }
-                    }
-                } else {
-                    switch (replies.stdoutID, stdoutFile) {
-                    case (let stdoutID?, nil): channel.deleteMessage(stdoutID)
-                    case (let stdoutID?, _): channel.editMessage(stdoutID,
-                                                                 with: ["content": "this stdout.txt is obsolete."])
-                    default: break
-                    }
-                    switch (replies.stderrID, stderrFile) {
-                    case (let stderrID?, nil): channel.deleteMessage(stderrID)
-                    case (let stderrID?, _): channel.editMessage(stderrID,
-                                                                 with: ["content": "this stderr.txt is obsolete."])
-                    default: break
                     }
                 }
             }
