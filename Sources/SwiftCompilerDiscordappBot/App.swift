@@ -47,8 +47,8 @@ struct App {
 
     // Replied Requests
     static var repliedRequests = RepliedRequests()
+    typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
     struct RepliedRequests {
-        typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
         private var answeredMessages = [Snowflake: Replies]()
         private let queue = DispatchQueue(label: "answeredMessages")
         subscript(messageID: Snowflake) -> Replies {
@@ -66,10 +66,10 @@ struct App {
         let description: String
     }
 
-    // executionResult
+    // ExecutionResult // swiftlint:disable:next line_length
     typealias ExecutionResult = (args: [String], status: Int32, content: String, stdoutFile: String?, stderrFile: String?)
 
-    static func executeSwift(
+    static func executeSwift( // swiftlint:disable:this function_body_length
         with options: [String],
         _ swiftCode: String,
         handler: (ExecutionResult) -> Void) throws {
@@ -211,7 +211,6 @@ struct App {
         pattern: String,
         options: NSRegularExpression.Options = [.anchorsMatchLines, .dotMatchesLineSeparators]
         ) -> NSRegularExpression {
-        return try! .init(pattern: pattern, options: options)
+        return try! .init(pattern: pattern, options: options) // swiftlint:disable:this force_try
     }
 }
-
