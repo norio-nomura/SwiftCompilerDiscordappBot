@@ -45,6 +45,23 @@ struct App {
         return (options, swiftCode)
     }
 
+    // Replied Requests
+    static var repliedRequests = RepliedRequests()
+    struct RepliedRequests {
+        typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
+        private var answeredMessages = [Snowflake: Replies]()
+        private let queue = DispatchQueue(label: "answeredMessages")
+        subscript(messageID: Snowflake) -> Replies {
+            get { return queue.sync { answeredMessages[messageID] } ?? (nil, nil, nil) }
+            set {
+                switch newValue {
+                case (nil, nil, nil): queue.sync { answeredMessages[messageID] = nil }
+                default: queue.sync { answeredMessages[messageID] = newValue }
+                }
+            }
+        }
+    }
+
     struct Error: Swift.Error, CustomStringConvertible {
         let description: String
     }
