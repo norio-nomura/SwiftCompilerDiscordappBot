@@ -9,6 +9,10 @@ Inspired by [swift-compiler-discord-bot](https://github.com/kishikawakatsumi/swi
 
 [Creating a discord bot & getting a token](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token)
 
+#### Required Permissions
+- `CHANGE_NICKNAME` for update nickname
+- `READ_MESSAGE_HISTORY` and `VIEW_CHANNEL` for update replies on updating request from user
+
 ### Test on local host
 
 ```terminal.sh-session
