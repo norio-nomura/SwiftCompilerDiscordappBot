@@ -85,7 +85,7 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
 
     // MARK: check replied
     let replies = App.repliedRequests[message.id]
-    guard replies != (nil, nil, nil) else { return }
+    guard !(replies.replyID == nil && replies.stdoutID == nil && replies.stderrID == nil) else { return }
 
     // MARK: check mentions
     guard message.author?.id != bot.user?.id,
