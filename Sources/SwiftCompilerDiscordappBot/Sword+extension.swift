@@ -12,14 +12,6 @@ extension Message {
         App.log("\(id): " + message)
     }
 
-    func loggedReply(
-        with message: String,
-        then completion: ((Message?, RequestError?) -> Void)? = nil
-    ) {
-        reply(with: message, then: completion)
-        log(message)
-    }
-
     func answer(
         with message: String,
         then completion: ((Message?, RequestError?) -> Void)? = nil
