@@ -104,7 +104,7 @@ App.bot.on(.messageUpdate) { data in
                 try App.executeSwift(with: options, swiftCode) { result in
                     let (args, status, content, stdoutFile, stderrFile) = result
                     message.log("executed: \(args), status: \(status)")
-                    if let _ = replies.replyID {
+                    if replies.replyID != nil {
                         message.answer(with: content)
                     } else if !isSomeMessagesArePostedSinceBotReplied {
                         message.answer(with: content)
