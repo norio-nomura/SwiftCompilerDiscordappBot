@@ -19,9 +19,9 @@ extension Message {
         if let replyID = App.repliedRequests[id].replyID {
             channel.editMessage(replyID, with: ["content": message], then: completion)
         } else {
-            let id = self.id
+            let messageID = self.id
             reply(with: message) { reply, error in
-                App.repliedRequests[id].replyID = reply?.id
+                App.repliedRequests[messageID].replyID = reply?.id
                 completion?(reply, error)
             }
         }
@@ -30,19 +30,19 @@ extension Message {
     func answerStdout(
         with filename: String?,
         then completion: ((Message?, RequestError?) -> Void)? = nil
-    ){
+    ) {
         guard let filename = filename else { return }
-        let id = self.id
-        if let stdoutID = App.repliedRequests[id].stdoutID {
+        let messageID = self.id
+        if let stdoutID = App.repliedRequests[messageID].stdoutID {
             channel.deleteMessage(stdoutID)
-            App.repliedRequests[id].stdoutID = nil
+            App.repliedRequests[messageID].stdoutID = nil
             reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[id].stdoutID = reply?.id
+                App.repliedRequests[messageID].stdoutID = reply?.id
                 completion?(reply, error)
             }
         } else {
             reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[id].stdoutID = reply?.id
+                App.repliedRequests[messageID].stdoutID = reply?.id
                 completion?(reply, error)
             }
         }
@@ -51,19 +51,19 @@ extension Message {
     func answerStderr(
         with filename: String?,
         then completion: ((Message?, RequestError?) -> Void)? = nil
-    ){
+    ) {
         guard let filename = filename else { return }
-        let id = self.id
-        if let stderrID = App.repliedRequests[id].stderrID {
+        let messageID = self.id
+        if let stderrID = App.repliedRequests[messageID].stderrID {
             channel.deleteMessage(stderrID)
-            App.repliedRequests[id].stdoutID = nil
+            App.repliedRequests[messageID].stdoutID = nil
             reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[id].stderrID = reply?.id
+                App.repliedRequests[messageID].stderrID = reply?.id
                 completion?(reply, error)
             }
         } else {
             reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[id].stderrID = reply?.id
+                App.repliedRequests[messageID].stderrID = reply?.id
                 completion?(reply, error)
             }
         }
@@ -110,7 +110,7 @@ extension Message {
 
         return (options, swiftCode)
     }
-    
+
     private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
     private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(App.bot.user!.id)>(.*?)$")
 }
@@ -151,7 +151,7 @@ extension TextChannel {
 }
 
 extension User: Equatable {
-    public static func ==(lhs: User, rhs: User) -> Bool {
+    public static func == (lhs: User, rhs: User) -> Bool {
         return lhs.id == rhs.id
     }
 }
