@@ -10,7 +10,15 @@ import Foundation
 import Sword
 
 struct App {
-    static let bot = Sword(token: discordToken)
+    static let swordOptions: SwordOptions = {
+        var options = SwordOptions()
+        switch environment["SWORD_LOGGING"] ?? "NO" {
+        case "YES", "TRUE": options.willLog = true
+        default: options.willLog = false
+        }
+        return options
+    }()
+    static let bot = Sword(token: discordToken, with: swordOptions)
     static var helpMessage: String {
         return """
         ```
