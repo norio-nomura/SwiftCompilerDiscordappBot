@@ -1,5 +1,5 @@
 //
-//  Message+extension.swift
+//  Sword+extension.swift
 //  SwiftCompilerDiscordappBot
 //
 //  Created by Norio Nomura on 4/14/18.
@@ -83,5 +83,51 @@ extension Message {
     ) {
         answer(with: "\(error)", then: completion)
         App.log("\(id): \(error)")
+    }
+
+    func deleteAnswers() {
+        deleteAnswer()
+        deleteStdoutAnswer()
+        deleteStderrAnswer()
+        App.repliedRequests[id] = (nil, nil, nil)
+    }
+
+    func deleteAnswer() {
+        if let replyID = App.repliedRequests[id].replyID {
+            channel.deleteMessage(replyID) {
+                if let error = $0 {
+                    App.log("failed to delete message: \(replyID) with error: \(error)")
+                }
+            }
+            App.repliedRequests[id].replyID = nil
+        }
+    }
+
+    func deleteStdoutAnswer() {
+        if let stdoutID = App.repliedRequests[id].stdoutID {
+            channel.deleteMessage(stdoutID) {
+                if let error = $0 {
+                    App.log("failed to delete stdout answer: \(stdoutID) with error: \(error)")
+                }
+            }
+            App.repliedRequests[id].stdoutID = nil
+        }
+    }
+
+    func deleteStderrAnswer() {
+        if let stderrID = App.repliedRequests[id].stderrID {
+            channel.deleteMessage(stderrID) {
+                if let error = $0 {
+                    App.log("failed to delete stderr answer: \(stderrID) with error: \(error)")
+                }
+            }
+            App.repliedRequests[id].stderrID = nil
+        }
+    }
+}
+
+extension User: Equatable {
+    public static func ==(lhs: User, rhs: User) -> Bool {
+        return lhs.id == rhs.id
     }
 }

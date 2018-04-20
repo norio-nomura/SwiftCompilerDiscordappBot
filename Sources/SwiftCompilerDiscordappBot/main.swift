@@ -28,15 +28,14 @@ App.bot.on(.guildAvailable) { data in
 
 // MARK: - MessageCreate
 App.bot.on(.messageCreate) { data in
-    // MARK: check mentions
     guard let message = data as? Message,
-        message.author?.id != App.bot.user?.id,
         !(message.author?.isBot ?? false),
-        message.mentions.contains(where: { $0.id == App.bot.user?.id }) else { return }
-    let channel = message.channel
+        let botUser = App.bot.user,
+        message.author != botUser,
+        message.mentions.contains(botUser) else { return }
 
     // MARK: restrict to public channel
-    guard channel.type == .guildText else {
+    guard message.channel.type == .guildText else {
         message.reply(with: "Sorry, I am not allowed to work on this channel.")
         return
     }
@@ -49,7 +48,7 @@ App.bot.on(.messageCreate) { data in
     }
 
     // MARK: Trigger Typing Indicator
-    App.bot.setTyping(for: channel.id)
+    App.bot.setTyping(for: message.channel.id)
 
     do {
         try App.executeSwift(with: options, swiftCode) { result in
@@ -66,29 +65,16 @@ App.bot.on(.messageCreate) { data in
 
 // MARK: - MessageUpdate
 App.bot.on(.messageUpdate) { data in
-    guard let message = data as? Message else { return }
+    guard let message = data as? Message,
+        !(message.author?.isBot ?? false),
+        let botUser = App.bot.user,
+        message.author != botUser else { return }
+
     let channel = message.channel
 
-    // MARK: author is not
-    guard message.author?.id != App.bot.user?.id, !(message.author?.isBot ?? false)  else { return }
-
-    // MARK: check replied
-    let replies = App.repliedRequests[message.id]
-
     // MARK: check mentions
-    guard message.mentions.contains(where: { $0.id == App.bot.user?.id }) else {
-        if let replyID = replies.replyID {
-            channel.deleteMessage(replyID)
-            App.repliedRequests[message.id].replyID = nil
-        }
-        if let stdoutID = replies.stdoutID {
-            channel.deleteMessage(stdoutID)
-            App.repliedRequests[message.id].stdoutID = nil
-        }
-        if let stderrID = replies.stderrID {
-            channel.deleteMessage(stderrID)
-            App.repliedRequests[message.id].stderrID = nil
-        }
+    guard message.mentions.contains(botUser) else {
+        message.deleteAnswers()
         return
     }
 
@@ -103,6 +89,7 @@ App.bot.on(.messageUpdate) { data in
     App.bot.setTyping(for: channel.id)
 
     // Does bot have replied?
+    let replies = App.repliedRequests[message.id]
     if let lastReplyID = replies.stderrID ?? replies.stdoutID ?? replies.replyID {
         // MARK: check some one posts messages after bot's replies
         channel.getMessages(with: ["after": lastReplyID, "limit": 1]) { messages, error in
@@ -116,14 +103,8 @@ App.bot.on(.messageUpdate) { data in
                     } else if !isSomeMessagesArePostedSinceBotReplied {
                         message.answer(with: content)
                     }
-                    if let stdoutID = replies.stdoutID {
-                        channel.deleteMessage(stdoutID)
-                        App.repliedRequests[message.id].stdoutID = nil
-                    }
-                    if let stderrID = replies.stderrID {
-                        channel.deleteMessage(stderrID)
-                        App.repliedRequests[message.id].stderrID = nil
-                    }
+                    message.deleteStdoutAnswer()
+                    message.deleteStderrAnswer()
                     if !isSomeMessagesArePostedSinceBotReplied {
                         if let stdoutFile = stdoutFile {
                             message.answerStdout(with: stdoutFile)
