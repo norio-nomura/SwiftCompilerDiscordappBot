@@ -27,7 +27,7 @@ jobs:
 
   linux_swift_4.2:
     docker:
-      - image: norionomura/swift:20180418a
+      - image: norionomura/swift:20180419a
     steps: *steps-for-linux-without-swiftlint
 
 workflows:

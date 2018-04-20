@@ -7,6 +7,13 @@
 
 import Foundation
 
+func regex(
+    pattern: String,
+    options: NSRegularExpression.Options = [.anchorsMatchLines, .dotMatchesLineSeparators]
+) -> NSRegularExpression {
+    return try! .init(pattern: pattern, options: options) // swiftlint:disable:this force_try
+}
+
 extension NSRegularExpression {
     func firstMatch(in string: String, options: NSRegularExpression.MatchingOptions = []) -> [String] {
         let range = NSRange(string.startIndex..<string.endIndex, in: string)
