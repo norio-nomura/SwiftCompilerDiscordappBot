@@ -27,13 +27,12 @@ App.bot.on(.guildAvailable) { data in
 }
 
 // MARK: - MessageCreate
-App.bot.on(.messageCreate) { [weak bot = App.bot] data in
-    guard let bot = bot else { return }
+App.bot.on(.messageCreate) { data in
     // MARK: check mentions
     guard let message = data as? Message,
-        message.author?.id != bot.user?.id,
+        message.author?.id != App.bot.user?.id,
         !(message.author?.isBot ?? false),
-        message.mentions.contains(where: { $0.id == bot.user?.id }) else { return }
+        message.mentions.contains(where: { $0.id == App.bot.user?.id }) else { return }
     let channel = message.channel
 
     // MARK: restrict to public channel
@@ -45,9 +44,7 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
     // MARK: parse message
     let (options, swiftCode) = App.parse(message)
     guard !(options.isEmpty && swiftCode.isEmpty) else {
-        message.reply(with: App.helpMessage) { reply, _ in
-            App.repliedRequests[message.id].replyID = reply?.id
-        }
+        message.answer(with: App.helpMessage)
         return
     }
 
@@ -58,41 +55,28 @@ App.bot.on(.messageCreate) { [weak bot = App.bot] data in
         try App.executeSwift(with: options, swiftCode) { result in
             let (args, status, content, stdoutFile, stderrFile) = result
             message.log("executed: \(args), status: \(status)")
-            message.reply(with: content) { reply, _ in
-                App.repliedRequests[message.id].replyID = reply?.id
-            }
-            if let stdoutFile = stdoutFile {
-                message.reply(with: ["file": stdoutFile]) { reply, _ in
-                    App.repliedRequests[message.id].stdoutID = reply?.id
-                }
-            }
-            if let stderrFile = stderrFile {
-                message.reply(with: ["file": stderrFile]) { reply, _ in
-                    App.repliedRequests[message.id].stderrID = reply?.id
-                }
-            }
+            message.answer(with: content)
+            message.answerStdout(with: stdoutFile)
+            message.answerStderr(with: stderrFile)
         }
     } catch {
-        message.loggedReply(with: "\(error)") { reply, _ in
-            App.repliedRequests[message.id].replyID = reply?.id
-        }
+        message.answer(with: error)
     }
 }
 
 // MARK: - MessageUpdate
-App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
-    guard let bot = bot else { return }
+App.bot.on(.messageUpdate) { data in
     guard let message = data as? Message else { return }
     let channel = message.channel
 
     // MARK: author is not
-    guard message.author?.id != bot.user?.id, !(message.author?.isBot ?? false)  else { return }
+    guard message.author?.id != App.bot.user?.id, !(message.author?.isBot ?? false)  else { return }
 
     // MARK: check replied
     let replies = App.repliedRequests[message.id]
 
     // MARK: check mentions
-    guard message.mentions.contains(where: { $0.id == bot.user?.id }) else {
+    guard message.mentions.contains(where: { $0.id == App.bot.user?.id }) else {
         if let replyID = replies.replyID {
             channel.deleteMessage(replyID)
             App.repliedRequests[message.id].replyID = nil
@@ -111,15 +95,7 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
     // MARK: parse message
     let (options, swiftCode) = App.parse(message)
     guard !(options.isEmpty && swiftCode.isEmpty) else {
-        if let replyID = replies.replyID {
-            channel.editMessage(replyID, with: ["content": App.helpMessage]) { reply, _ in
-                App.repliedRequests[message.id].replyID = reply?.id
-            }
-        } else {
-            message.reply(with: App.helpMessage) { reply, _ in
-                App.repliedRequests[message.id].replyID = reply?.id
-            }
-        }
+        message.answer(with: App.helpMessage)
         return
     }
 
@@ -135,16 +111,10 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
                 try App.executeSwift(with: options, swiftCode) { result in
                     let (args, status, content, stdoutFile, stderrFile) = result
                     message.log("executed: \(args), status: \(status)")
-                    if let replyID = replies.replyID {
-                        channel.editMessage(replyID, with: ["content": content])
-                    } else {
-                        message.reply(with: App.helpMessage) { reply, _ in
-                            App.repliedRequests[message.id].replyID = reply?.id
-                        }
-                    }
-
-                    if !isSomeMessagesArePostedSinceBotReplied {
-                        message.reply(with: content)
+                    if let _ = replies.replyID {
+                        message.answer(with: content)
+                    } else if !isSomeMessagesArePostedSinceBotReplied {
+                        message.answer(with: content)
                     }
                     if let stdoutID = replies.stdoutID {
                         channel.deleteMessage(stdoutID)
@@ -156,14 +126,10 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
                     }
                     if !isSomeMessagesArePostedSinceBotReplied {
                         if let stdoutFile = stdoutFile {
-                            message.reply(with: ["file": stdoutFile]) { reply, _ in
-                                App.repliedRequests[message.id].stdoutID = reply?.id
-                            }
+                            message.answerStdout(with: stdoutFile)
                         }
                         if let stderrFile = stderrFile {
-                            message.reply(with: ["file": stderrFile]) { reply, _ in
-                                App.repliedRequests[message.id].stdoutID = reply?.id
-                            }
+                            message.answerStderr(with: stderrFile)
                         }
                     }
                 }
@@ -171,7 +137,7 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
                 if let replyID = replies.replyID {
                     channel.editMessage(replyID, with: ["content": "\(error)"])
                 } else if !isSomeMessagesArePostedSinceBotReplied {
-                    message.reply(with: "\(error)")
+                    message.answer(with: error)
                 }
             }
         }
@@ -180,24 +146,12 @@ App.bot.on(.messageUpdate) { [weak bot = App.bot] data in
             try App.executeSwift(with: options, swiftCode) { result in
                 let (args, status, content, stdoutFile, stderrFile) = result
                 message.log("executed: \(args), status: \(status)")
-                message.reply(with: content) { reply, _ in
-                    App.repliedRequests[message.id].replyID = reply?.id
-                }
-                if let stdoutFile = stdoutFile {
-                    message.reply(with: ["file": stdoutFile]) { reply, _ in
-                        App.repliedRequests[message.id].stdoutID = reply?.id
-                    }
-                }
-                if let stderrFile = stderrFile {
-                    message.reply(with: ["file": stderrFile]) { reply, _ in
-                        App.repliedRequests[message.id].stderrID = reply?.id
-                    }
-                }
+                message.answer(with: content)
+                message.answerStdout(with: stdoutFile)
+                message.answerStderr(with: stderrFile)
             }
         } catch {
-            message.loggedReply(with: "\(error)") { reply, _ in
-                App.repliedRequests[message.id].replyID = reply?.id
-            }
+            message.answer(with: error)
         }
     }
 }
