@@ -72,6 +72,12 @@ App.bot.on(.messageUpdate) { data in
 
     let channel = message.channel
 
+    // MARK: restrict to public channel
+    guard message.channel.type == .guildText else {
+        message.reply(with: "Sorry, I am not allowed to work on this channel.")
+        return
+    }
+
     // MARK: check mentions
     guard message.mentions.contains(botUser) else {
         message.deleteAnswers()
@@ -135,6 +141,13 @@ App.bot.on(.messageUpdate) { data in
             message.answer(with: error)
         }
     }
+}
+
+App.bot.on(.messageDelete) { data in
+    guard let (messageID, channel) = data as? (Snowflake, TextChannel) else { return }
+    channel.deleteAnswer(for: messageID)
+    channel.deleteStdoutAnswer(for: messageID)
+    channel.deleteStderrAnswer(for: messageID)
 }
 
 signal(SIGTERM) { _ in

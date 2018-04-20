@@ -93,36 +93,15 @@ extension Message {
     }
 
     func deleteAnswer() {
-        if let replyID = App.repliedRequests[id].replyID {
-            channel.deleteMessage(replyID) {
-                if let error = $0 {
-                    App.log("failed to delete message: \(replyID) with error: \(error)")
-                }
-            }
-            App.repliedRequests[id].replyID = nil
-        }
+        channel.deleteAnswer(for: id)
     }
 
     func deleteStdoutAnswer() {
-        if let stdoutID = App.repliedRequests[id].stdoutID {
-            channel.deleteMessage(stdoutID) {
-                if let error = $0 {
-                    App.log("failed to delete stdout answer: \(stdoutID) with error: \(error)")
-                }
-            }
-            App.repliedRequests[id].stdoutID = nil
-        }
+        channel.deleteStdoutAnswer(for: id)
     }
 
     func deleteStderrAnswer() {
-        if let stderrID = App.repliedRequests[id].stderrID {
-            channel.deleteMessage(stderrID) {
-                if let error = $0 {
-                    App.log("failed to delete stderr answer: \(stderrID) with error: \(error)")
-                }
-            }
-            App.repliedRequests[id].stderrID = nil
-        }
+        channel.deleteStderrAnswer(for: id)
     }
 
     func parse() -> (options: [String], swiftCode: String) {
@@ -142,6 +121,41 @@ extension Message {
     
     private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
     private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(App.bot.user!.id)>(.*?)$")
+}
+
+extension TextChannel {
+    func deleteAnswer(for requestID: Snowflake) {
+        if let replyID = App.repliedRequests[requestID].replyID {
+            deleteMessage(replyID) {
+                if let error = $0 {
+                    App.log("failed to delete message: \(replyID) with error: \(error)")
+                }
+            }
+            App.repliedRequests[requestID].replyID = nil
+        }
+    }
+
+    func deleteStdoutAnswer(for requestID: Snowflake) {
+        if let stdoutID = App.repliedRequests[requestID].stdoutID {
+            deleteMessage(stdoutID) {
+                if let error = $0 {
+                    App.log("failed to delete stdout answer: \(stdoutID) with error: \(error)")
+                }
+            }
+            App.repliedRequests[requestID].stdoutID = nil
+        }
+    }
+
+    func deleteStderrAnswer(for requestID: Snowflake) {
+        if let stderrID = App.repliedRequests[requestID].stderrID {
+            deleteMessage(stderrID) {
+                if let error = $0 {
+                    App.log("failed to delete stderr answer: \(stderrID) with error: \(error)")
+                }
+            }
+            App.repliedRequests[requestID].stderrID = nil
+        }
+    }
 }
 
 extension User: Equatable {
