@@ -30,21 +30,6 @@ struct App {
         print("🤖 " + message)
     }
 
-    static func parse(_ message: Message) -> (options: [String], swiftCode: String) {
-        // MARK: first line is used to options for swift
-        let mentionedLine = regexForMentionedLine.firstMatch(in: message.content)[1]
-        let optionsString = message.mentions.reduce(mentionedLine) {
-            // remove mentions
-            $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
-        }
-        let options = optionsString.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-
-        // MARK: parse codeblock
-        let swiftCode = regexForCodeblock.firstMatch(in: message.content).last ?? ""
-
-        return (options, swiftCode)
-    }
-
     // Replied Requests
     static var repliedRequests = RepliedRequests()
     typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
@@ -202,15 +187,6 @@ struct App {
     private static let environment = ProcessInfo.processInfo.environment
     private static let regexForVersionInfo = regex(pattern: "^(Apple )?Swift version (\\S+) \\(.*\\)$",
                                                    options: .anchorsMatchLines)
-    private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
-    private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(bot.user!.id)>(.*?)$")
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
     private static let versionInfo = execute(["swift", "--version"]).stdout
-
-    private static func regex(
-        pattern: String,
-        options: NSRegularExpression.Options = [.anchorsMatchLines, .dotMatchesLineSeparators]
-        ) -> NSRegularExpression {
-        return try! .init(pattern: pattern, options: options) // swiftlint:disable:this force_try
-    }
 }

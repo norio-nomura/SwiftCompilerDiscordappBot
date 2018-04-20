@@ -41,7 +41,7 @@ App.bot.on(.messageCreate) { data in
     }
 
     // MARK: parse message
-    let (options, swiftCode) = App.parse(message)
+    let (options, swiftCode) = message.parse()
     guard !(options.isEmpty && swiftCode.isEmpty) else {
         message.answer(with: App.helpMessage)
         return
@@ -79,7 +79,7 @@ App.bot.on(.messageUpdate) { data in
     }
 
     // MARK: parse message
-    let (options, swiftCode) = App.parse(message)
+    let (options, swiftCode) = message.parse()
     guard !(options.isEmpty && swiftCode.isEmpty) else {
         message.answer(with: App.helpMessage)
         return

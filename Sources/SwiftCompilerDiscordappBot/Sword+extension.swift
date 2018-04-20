@@ -124,6 +124,24 @@ extension Message {
             App.repliedRequests[id].stderrID = nil
         }
     }
+
+    func parse() -> (options: [String], swiftCode: String) {
+        // MARK: first line is used to options for swift
+        let mentionedLine = Message.regexForMentionedLine.firstMatch(in: content)[1]
+        let optionsString = mentions.reduce(mentionedLine) {
+            // remove mentions
+            $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
+        }
+        let options = optionsString.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+
+        // MARK: parse codeblock
+        let swiftCode = Message.regexForCodeblock.firstMatch(in: content).last ?? ""
+
+        return (options, swiftCode)
+    }
+    
+    private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
+    private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(App.bot.user!.id)>(.*?)$")
 }
 
 extension User: Equatable {
