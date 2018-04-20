@@ -17,9 +17,11 @@ App.log("is online and playing \(App.playing).")
 App.bot.on(.guildAvailable) { data in
     guard let guild = data as? Guild else { return }
     App.log("Guild Available: \(guild.name)")
-    guild.setNickname(to: App.nickname) { error in
-        if let error = error {
-            App.log("failed to change nickname in guild: \(guild.name), error: \(error)")
+    if guild.members[App.bot.user!.id]?.nick != App.nickname {
+        guild.setNickname(to: App.nickname) { error in
+            if let error = error {
+                App.log("failed to change nickname in guild: \(guild.name), error: \(error)")
+            }
         }
     }
 }
