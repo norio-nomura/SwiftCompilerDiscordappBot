@@ -74,7 +74,7 @@ extension Message {
         then completion: ((Message?, RequestError?) -> Void)? = nil
     ) {
         answer(with: "\(error)", then: completion)
-        App.log("\(id): \(error)")
+        log("\(id): \(error)")
     }
 
     func deleteAnswers() {
