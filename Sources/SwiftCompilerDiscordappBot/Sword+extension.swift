@@ -5,11 +5,23 @@
 //  Created by Norio Nomura on 4/14/18.
 //
 
+import Dispatch
 import Sword
 
 extension Message {
     func log(_ message: String) {
         App.log("\(id): " + message)
+    }
+
+    // AnswerID for Request
+    fileprivate static var answerID = AnswerIDs()
+    fileprivate struct AnswerIDs {
+        private var requestAnswerMap = [Snowflake: Snowflake]()
+        private let queue = DispatchQueue(label: "answeredMessages")
+        subscript(for requestID: Snowflake) -> Snowflake? {
+            get { return queue.sync { requestAnswerMap[requestID] } }
+            set { queue.sync { requestAnswerMap[requestID] = newValue } }
+        }
     }
 
     func answer(
@@ -22,12 +34,12 @@ extension Message {
             .parallelCompactMap { upload($0.0, as: $0.1) }
             .map { ["name": "stdout", "value": "\($0)", "inline": true] }
         let message = fields.isEmpty ? ["content": content] : ["content": content, "embeds": ["fields": fields]]
-        if let answerID = App.answerID[for: id] {
+        if let answerID = Message.answerID[for: id] {
             channel.editMessage(answerID, with: message, then: completion)
         } else {
             let requestID = id
             reply(with: message) { answer, error in
-                App.answerID[for: requestID] = answer?.id
+                Message.answerID[for: requestID] = answer?.id
                 completion?(answer, error)
             }
         }
@@ -66,13 +78,13 @@ extension Message {
 
 extension TextChannel {
     func deleteAnswer(for requestID: Snowflake) {
-        if let answerID = App.answerID[for: requestID] {
+        if let answerID = Message.answerID[for: requestID] {
             deleteMessage(answerID) {
                 if let error = $0 {
                     App.log("failed to delete message: \(answerID) with error: \(error)")
                 }
             }
-            App.answerID[for: requestID] = nil
+            Message.answerID[for: requestID] = nil
         }
     }
 }

@@ -5,7 +5,6 @@
 //  Created by Norio Nomura on 4/19/18.
 //
 
-import Dispatch
 import Foundation
 import Sword
 
@@ -36,17 +35,6 @@ struct App {
 
     static func log(_ message: String) {
         print("🤖 " + message)
-    }
-
-    // AnswerID for Request
-    static var answerID = AnswerIDs()
-    struct AnswerIDs {
-        private var requestAnswerMap = [Snowflake: Snowflake]()
-        private let queue = DispatchQueue(label: "answeredMessages")
-        subscript(for requestID: Snowflake) -> Snowflake? {
-            get { return queue.sync { requestAnswerMap[requestID] } }
-            set { queue.sync { requestAnswerMap[requestID] = newValue } }
-        }
     }
 
     struct Error: Swift.Error, CustomStringConvertible {
