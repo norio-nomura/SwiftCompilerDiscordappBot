@@ -13,11 +13,17 @@ extension Message {
     }
 
     func answer(
-        with message: String,
+        with content: String,
+        stdout: String? = nil,
+        stderr: String? = nil,
         then completion: ((Message?, RequestError?) -> Void)? = nil
     ) {
+        let fields = [(stdout, "stdout.txt"), (stderr, "stderr.txt")]
+            .parallelCompactMap { upload($0.0, as: $0.1) }
+            .map {["name": "stdout", "value": "\($0)", "inline": true]}
+        let message = fields.isEmpty ? ["content": content] : ["content": content, "embeds": ["fields": fields]]
         if let replyID = App.repliedRequests[id].replyID {
-            channel.editMessage(replyID, with: ["content": message], then: completion)
+            channel.editMessage(replyID, with: message, then: completion)
         } else {
             let messageID = self.id
             reply(with: message) { reply, error in
