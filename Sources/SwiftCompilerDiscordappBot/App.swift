@@ -60,7 +60,7 @@ struct App {
     }
 
     // ExecutionResult // swiftlint:disable:next line_length
-    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdoutFile: String?, stderrFile: String?)
+    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdoutFile: String?, stderrFile: String?, stdout: String?, stderr: String?)
 
     static func executeSwift( // swiftlint:disable:this function_body_length
         with options: [String],
@@ -182,7 +182,9 @@ struct App {
         }
         let stdoutFile = attachOutput ? try create(filename: "stdout.txt", with: stdout) : nil
         let stderrFile = attachError ? try create(filename: "stderr.txt", with: stderr) : nil
-        handler((args, status, content, stdoutFile, stderrFile))
+        let optionalStdout = attachOutput ? stdout : nil
+        let optionalStderr = attachError ? stderr : nil
+        handler((args, status, content, stdoutFile, stderrFile, optionalStdout, optionalStderr))
     }
 
     // private

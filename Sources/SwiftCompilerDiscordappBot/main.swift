@@ -52,7 +52,7 @@ App.bot.on(.messageCreate) { data in
 
     do {
         try App.executeSwift(with: options, swiftCode) { result in
-            let (args, status, content, stdoutFile, stderrFile) = result
+            let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
             message.log("executed: \(args), status: \(status)")
             message.answer(with: content)
             message.answerStdout(with: stdoutFile)
@@ -102,7 +102,7 @@ App.bot.on(.messageUpdate) { data in
             let isSomeMessagesArePostedSinceBotReplied = messages?.count ?? 1 > 0
             do {
                 try App.executeSwift(with: options, swiftCode) { result in
-                    let (args, status, content, stdoutFile, stderrFile) = result
+                    let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
                     message.log("executed: \(args), status: \(status)")
                     if replies.replyID != nil {
                         message.answer(with: content)
@@ -131,7 +131,7 @@ App.bot.on(.messageUpdate) { data in
     } else {
         do {
             try App.executeSwift(with: options, swiftCode) { result in
-                let (args, status, content, stdoutFile, stderrFile) = result
+                let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
                 message.log("executed: \(args), status: \(status)")
                 message.answer(with: content)
                 message.answerStdout(with: stdoutFile)
