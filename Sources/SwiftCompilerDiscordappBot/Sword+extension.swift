@@ -36,10 +36,12 @@ extension Message {
                 upload(file.content, as: file.name).map { (file.name, $0) }
             }
             .map { ["name": $0.0, "value": $0.1, "inline": true] }
-        let message = fields.isEmpty ? ["content": content] : ["content": content, "embed": ["fields": fields]]
+        let embed = ["fields": fields]
         if let answerID = Message.answerID[for: id] {
+            let message: [String: Any] = ["content": content, "embed": embed]
             channel.editMessage(answerID, with: message, then: completion)
         } else {
+            let message = fields.isEmpty ? ["content": content] : ["content": content, "embed": embed]
             let requestID = id
             reply(with: message) { answer, error in
                 Message.answerID[for: requestID] = answer?.id
