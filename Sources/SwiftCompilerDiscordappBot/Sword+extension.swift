@@ -30,10 +30,13 @@ extension Message {
         stderr: String? = nil,
         then completion: ((Message?, RequestError?) -> Void)? = nil
     ) {
-        let fields = [(stdout, "stdout.txt"), (stderr, "stderr.txt")]
-            .parallelCompactMap { upload($0.0, as: $0.1) }
-            .map { ["name": "stdout", "value": "\($0)", "inline": true] }
-        let message = fields.isEmpty ? ["content": content] : ["content": content, "embeds": ["fields": fields]]
+        let files: [(name: String, content: String?)] = [("stdout.txt", stdout), ("stderr.txt", stderr)]
+        let fields = files
+            .parallelCompactMap { file in
+                upload(file.content, as: file.name).map { (file.name, $0) }
+            }
+            .map { ["name": $0.0, "value": $0.1, "inline": true] }
+        let message = fields.isEmpty ? ["content": content] : ["content": content, "embed": ["fields": fields]]
         if let answerID = Message.answerID[for: id] {
             channel.editMessage(answerID, with: message, then: completion)
         } else {
