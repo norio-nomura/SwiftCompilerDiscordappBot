@@ -5,7 +5,6 @@
 //  Created by Norio Nomura on 4/19/18.
 //
 
-import Dispatch
 import Foundation
 import Sword
 
@@ -38,29 +37,12 @@ struct App {
         print("🤖 " + message)
     }
 
-    // Replied Requests
-    static var repliedRequests = RepliedRequests()
-    typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
-    struct RepliedRequests {
-        private var answeredMessages = [Snowflake: Replies]()
-        private let queue = DispatchQueue(label: "answeredMessages")
-        subscript(messageID: Snowflake) -> Replies {
-            get { return queue.sync { answeredMessages[messageID] } ?? (nil, nil, nil) }
-            set {
-                switch newValue {
-                case (nil, nil, nil): queue.sync { answeredMessages[messageID] = nil }
-                default: queue.sync { answeredMessages[messageID] = newValue }
-                }
-            }
-        }
-    }
-
     struct Error: Swift.Error, CustomStringConvertible {
         let description: String
     }
 
-    // ExecutionResult // swiftlint:disable:next line_length
-    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdoutFile: String?, stderrFile: String?)
+    // ExecutionResult
+    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdout: String?, stderr: String?)
 
     static func executeSwift( // swiftlint:disable:this function_body_length
         with options: [String],
@@ -169,20 +151,9 @@ struct App {
             }
         }
 
-        // build files
-        var files = [String]()
-        func create(filename: String, with content: String) throws -> String {
-            do {
-                let outputFileURL = directory.appendingPathComponent(filename)
-                try content.write(to: outputFileURL, atomically: true, encoding: .utf8)
-                return outputFileURL.path
-            } catch {
-                throw Error(description: "failed to write `\(filename)` with error: \(error)")
-            }
-        }
-        let stdoutFile = attachOutput ? try create(filename: "stdout.txt", with: stdout) : nil
-        let stderrFile = attachError ? try create(filename: "stderr.txt", with: stderr) : nil
-        handler((args, status, content, stdoutFile, stderrFile))
+        let optionalStdout = attachOutput ? stdout : nil
+        let optionalStderr = attachError ? stderr : nil
+        handler((args, status, content, optionalStdout, optionalStderr))
     }
 
     // private
