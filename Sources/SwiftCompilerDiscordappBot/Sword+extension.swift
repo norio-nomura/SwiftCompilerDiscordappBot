@@ -33,48 +33,6 @@ extension Message {
         }
     }
 
-    func answerStdout(
-        with filename: String?,
-        then completion: ((Message?, RequestError?) -> Void)? = nil
-    ) {
-        guard let filename = filename else { return }
-        let messageID = self.id
-        if let stdoutID = App.repliedRequests[messageID].stdoutID {
-            channel.deleteMessage(stdoutID)
-            App.repliedRequests[messageID].stdoutID = nil
-            reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[messageID].stdoutID = reply?.id
-                completion?(reply, error)
-            }
-        } else {
-            reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[messageID].stdoutID = reply?.id
-                completion?(reply, error)
-            }
-        }
-    }
-
-    func answerStderr(
-        with filename: String?,
-        then completion: ((Message?, RequestError?) -> Void)? = nil
-    ) {
-        guard let filename = filename else { return }
-        let messageID = self.id
-        if let stderrID = App.repliedRequests[messageID].stderrID {
-            channel.deleteMessage(stderrID)
-            App.repliedRequests[messageID].stdoutID = nil
-            reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[messageID].stderrID = reply?.id
-                completion?(reply, error)
-            }
-        } else {
-            reply(with: ["file": filename]) { reply, error in
-                App.repliedRequests[messageID].stderrID = reply?.id
-                completion?(reply, error)
-            }
-        }
-    }
-
     func answer(
         with error: Swift.Error,
         then completion: ((Message?, RequestError?) -> Void)? = nil
@@ -83,23 +41,8 @@ extension Message {
         log("\(id): \(error)")
     }
 
-    func deleteAnswers() {
-        deleteAnswer()
-        deleteStdoutAnswer()
-        deleteStderrAnswer()
-        App.repliedRequests[id] = (nil, nil, nil)
-    }
-
     func deleteAnswer() {
         channel.deleteAnswer(for: id)
-    }
-
-    func deleteStdoutAnswer() {
-        channel.deleteStdoutAnswer(for: id)
-    }
-
-    func deleteStderrAnswer() {
-        channel.deleteStderrAnswer(for: id)
     }
 
     func parse() -> (options: [String], swiftCode: String) {
@@ -130,28 +73,6 @@ extension TextChannel {
                 }
             }
             App.repliedRequests[requestID].replyID = nil
-        }
-    }
-
-    func deleteStdoutAnswer(for requestID: Snowflake) {
-        if let stdoutID = App.repliedRequests[requestID].stdoutID {
-            deleteMessage(stdoutID) {
-                if let error = $0 {
-                    App.log("failed to delete stdout answer: \(stdoutID) with error: \(error)")
-                }
-            }
-            App.repliedRequests[requestID].stdoutID = nil
-        }
-    }
-
-    func deleteStderrAnswer(for requestID: Snowflake) {
-        if let stderrID = App.repliedRequests[requestID].stderrID {
-            deleteMessage(stderrID) {
-                if let error = $0 {
-                    App.log("failed to delete stderr answer: \(stderrID) with error: \(error)")
-                }
-            }
-            App.repliedRequests[requestID].stderrID = nil
         }
     }
 }

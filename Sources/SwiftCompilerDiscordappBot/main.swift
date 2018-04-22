@@ -54,9 +54,7 @@ App.bot.on(.messageCreate) { data in
         try App.executeSwift(with: options, swiftCode) { result in
             let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
             message.log("executed: \(args), status: \(status)")
-            message.answer(with: content)
-            message.answerStdout(with: stdoutFile)
-            message.answerStderr(with: stderrFile)
+            message.answer(with: content, stdout: stdout, stderr: stderr)
         }
     } catch {
         message.answer(with: error)
@@ -80,7 +78,7 @@ App.bot.on(.messageUpdate) { data in
 
     // MARK: check mentions
     guard message.mentions.contains(botUser) else {
-        message.deleteAnswers()
+        message.deleteAnswer()
         return
     }
 
@@ -94,60 +92,20 @@ App.bot.on(.messageUpdate) { data in
     // MARK: Trigger Typing Indicator
     App.bot.setTyping(for: channel.id)
 
-    // Does bot have replied?
-    let replies = App.repliedRequests[message.id]
-    if let lastReplyID = replies.stderrID ?? replies.stdoutID ?? replies.replyID {
-        // MARK: check some one posts messages after bot's replies
-        channel.getMessages(with: ["after": lastReplyID, "limit": 1]) { messages, error in
-            let isSomeMessagesArePostedSinceBotReplied = messages?.count ?? 1 > 0
-            do {
-                try App.executeSwift(with: options, swiftCode) { result in
-                    let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
-                    message.log("executed: \(args), status: \(status)")
-                    if replies.replyID != nil {
-                        message.answer(with: content)
-                    } else if !isSomeMessagesArePostedSinceBotReplied {
-                        message.answer(with: content)
-                    }
-                    message.deleteStdoutAnswer()
-                    message.deleteStderrAnswer()
-                    if !isSomeMessagesArePostedSinceBotReplied {
-                        if let stdoutFile = stdoutFile {
-                            message.answerStdout(with: stdoutFile)
-                        }
-                        if let stderrFile = stderrFile {
-                            message.answerStderr(with: stderrFile)
-                        }
-                    }
-                }
-            } catch {
-                if let replyID = replies.replyID {
-                    channel.editMessage(replyID, with: ["content": "\(error)"])
-                } else if !isSomeMessagesArePostedSinceBotReplied {
-                    message.answer(with: error)
-                }
-            }
+    do {
+        try App.executeSwift(with: options, swiftCode) { result in
+            let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
+            message.log("executed: \(args), status: \(status)")
+            message.answer(with: content, stdout: stdout, stderr: stderr)
         }
-    } else {
-        do {
-            try App.executeSwift(with: options, swiftCode) { result in
-                let (args, status, content, stdoutFile, stderrFile, stdout, stderr) = result
-                message.log("executed: \(args), status: \(status)")
-                message.answer(with: content)
-                message.answerStdout(with: stdoutFile)
-                message.answerStderr(with: stderrFile)
-            }
-        } catch {
-            message.answer(with: error)
-        }
+    } catch {
+        message.answer(with: error)
     }
 }
 
 App.bot.on(.messageDelete) { data in
     guard let (messageID, channel) = data as? (Snowflake, TextChannel) else { return }
     channel.deleteAnswer(for: messageID)
-    channel.deleteStdoutAnswer(for: messageID)
-    channel.deleteStderrAnswer(for: messageID)
 }
 
 signal(SIGTERM) { _ in
