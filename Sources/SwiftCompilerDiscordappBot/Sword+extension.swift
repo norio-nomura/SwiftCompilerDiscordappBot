@@ -20,15 +20,15 @@ extension Message {
     ) {
         let fields = [(stdout, "stdout.txt"), (stderr, "stderr.txt")]
             .parallelCompactMap { upload($0.0, as: $0.1) }
-            .map {["name": "stdout", "value": "\($0)", "inline": true]}
+            .map { ["name": "stdout", "value": "\($0)", "inline": true] }
         let message = fields.isEmpty ? ["content": content] : ["content": content, "embeds": ["fields": fields]]
-        if let replyID = App.repliedRequests[id].replyID {
-            channel.editMessage(replyID, with: message, then: completion)
+        if let answerID = App.answerID[for: id] {
+            channel.editMessage(answerID, with: message, then: completion)
         } else {
-            let messageID = self.id
-            reply(with: message) { reply, error in
-                App.repliedRequests[messageID].replyID = reply?.id
-                completion?(reply, error)
+            let requestID = id
+            reply(with: message) { answer, error in
+                App.answerID[for: requestID] = answer?.id
+                completion?(answer, error)
             }
         }
     }
@@ -66,13 +66,13 @@ extension Message {
 
 extension TextChannel {
     func deleteAnswer(for requestID: Snowflake) {
-        if let replyID = App.repliedRequests[requestID].replyID {
-            deleteMessage(replyID) {
+        if let answerID = App.answerID[for: requestID] {
+            deleteMessage(answerID) {
                 if let error = $0 {
-                    App.log("failed to delete message: \(replyID) with error: \(error)")
+                    App.log("failed to delete message: \(answerID) with error: \(error)")
                 }
             }
-            App.repliedRequests[requestID].replyID = nil
+            App.answerID[for: requestID] = nil
         }
     }
 }

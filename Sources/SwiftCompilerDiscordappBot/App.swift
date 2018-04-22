@@ -38,20 +38,14 @@ struct App {
         print("🤖 " + message)
     }
 
-    // Replied Requests
-    static var repliedRequests = RepliedRequests()
-    typealias Replies = (replyID: Snowflake?, stdoutID: Snowflake?, stderrID: Snowflake?)
-    struct RepliedRequests {
-        private var answeredMessages = [Snowflake: Replies]()
+    // AnswerID for Request
+    static var answerID = AnswerIDs()
+    struct AnswerIDs {
+        private var requestAnswerMap = [Snowflake: Snowflake]()
         private let queue = DispatchQueue(label: "answeredMessages")
-        subscript(messageID: Snowflake) -> Replies {
-            get { return queue.sync { answeredMessages[messageID] } ?? (nil, nil, nil) }
-            set {
-                switch newValue {
-                case (nil, nil, nil): queue.sync { answeredMessages[messageID] = nil }
-                default: queue.sync { answeredMessages[messageID] = newValue }
-                }
-            }
+        subscript(for requestID: Snowflake) -> Snowflake? {
+            get { return queue.sync { requestAnswerMap[requestID] } }
+            set { queue.sync { requestAnswerMap[requestID] = newValue } }
         }
     }
 
