@@ -10,6 +10,12 @@ import Foundation
 
 let uploaderURL = URL(string: "https://file.io/")!
 
+#if os(macOS) || os(Linux) && swift(>=4.1)
+let session = URLSession.shared
+#else
+let session = URLSession(configuration: .default)
+#endif
+
 func upload(_ text: String?, as filename: String) -> String? {
     guard let text = text else { return nil }
 
@@ -28,7 +34,7 @@ func upload(_ text: String?, as filename: String) -> String? {
 
     var uploadedLink: String? = nil
     let semaphore = DispatchSemaphore(value: 0)
-    let task = URLSession.shared.uploadTask(with: request, from: data) { data, response, error in
+    let task = session.uploadTask(with: request, from: data) { data, response, error in
         defer { semaphore.signal() }
         if let error = error {
             App.log("failed to upload stdout `stdout.text` with error: \(error)")
