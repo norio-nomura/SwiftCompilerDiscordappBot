@@ -47,12 +47,6 @@ func upload(_ text: String?, as filename: String) -> String? {
             return
         }
         do {
-            struct Payload: Decodable {
-                var success: Bool
-                var key: String
-                var link: String
-                var expiry: String
-            }
             let payload = try JSONDecoder().decode(Payload.self, from: data)
             if payload.success {
                 uploadedLink = payload.link
@@ -65,6 +59,13 @@ func upload(_ text: String?, as filename: String) -> String? {
     semaphore.wait()
 
     return uploadedLink
+}
+
+private struct Payload: Decodable {
+    var success: Bool
+    var key: String
+    var link: String
+    var expiry: String
 }
 
 extension Data {
