@@ -68,8 +68,6 @@ App.bot.on(.messageUpdate) { data in
         let botUser = App.bot.user,
         message.author != botUser else { return }
 
-    let channel = message.channel
-
     // MARK: restrict to public channel
     guard message.channel.type == .guildText else {
         message.reply(with: "Sorry, I am not allowed to work on this channel.")
@@ -90,7 +88,7 @@ App.bot.on(.messageUpdate) { data in
     }
 
     // MARK: Trigger Typing Indicator
-    App.bot.setTyping(for: channel.id)
+    App.bot.setTyping(for: message.channel.id)
 
     do {
         try App.executeSwift(with: options, swiftCode) { result in
