@@ -73,6 +73,16 @@ struct App {
             }
         }
 
+        // support importing RxSwift
+        let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
+        if FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) {
+            options += [
+                "-I", rxSwiftURL.path,
+                "-L", rxSwiftURL.path,
+                "-lRxSwift"
+            ]
+        }
+
         // create main.swift
         if !swiftCode.isEmpty {
             let mainSwiftURL = directory.appendingPathComponent("main.swift")
