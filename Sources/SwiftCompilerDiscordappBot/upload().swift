@@ -37,7 +37,7 @@ func upload(_ text: String?, as filename: String) -> String? {
     let task = session.uploadTask(with: request, from: data) { data, response, error in
         defer { semaphore.signal() }
         if let error = error {
-            App.log("failed to upload stdout `stdout.text` with error: \(error)")
+            App.log("failed to upload `\(filename)` with error: \(error)")
             return
         }
         guard let httpURLResponse = response as? HTTPURLResponse else {
