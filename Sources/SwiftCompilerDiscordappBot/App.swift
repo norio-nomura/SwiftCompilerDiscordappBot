@@ -53,7 +53,8 @@ struct App {
         // MARK: create temporary directory
         let sessionUUID = UUID().uuidString
 #if os(macOS)
-        let directory = URL(fileURLWithPath: "/tmp").appendingPathComponent(sessionUUID)
+        let currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let directory = currentDirectoryURL.appendingPathComponent("temp").appendingPathComponent(sessionUUID)
 #elseif os(Linux)
         let directory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(sessionUUID)
 #endif
