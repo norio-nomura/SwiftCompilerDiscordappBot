@@ -73,18 +73,18 @@ struct App {
             }
         }
 
-        // support importing RxSwift
-        let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
-        if FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) {
-            options += [
-                "-I", rxSwiftURL.path,
-                "-L", rxSwiftURL.path,
-                "-lRxSwift"
-            ]
-        }
-
         // create main.swift
         if !swiftCode.isEmpty {
+            // support importing RxSwift
+            let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
+            if FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) {
+                options += [
+                    "-I", rxSwiftURL.path,
+                    "-L", rxSwiftURL.path,
+                    "-lRxSwift"
+                ]
+            }
+
             let mainSwiftURL = directory.appendingPathComponent("main.swift")
             do {
                 try swiftCode.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
