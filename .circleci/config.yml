@@ -39,7 +39,31 @@ workflows:
   version: 2
   workflow:
     jobs:
-      - linux_swift_4.0.3
-      - linux_swift_4.1
-      - linux_swift_4.2
-      - linux_swift_tensorflow
+      - linux_swift_4.0.3:
+          filters:
+            branches:
+              ignore:
+                - swift41
+                - swift42
+                - swift-tensorflow
+      - linux_swift_4.1:
+          filters:
+            branches:
+              ignore:
+                - swift40
+                - swift42
+                - swift-tensorflow
+      - linux_swift_4.2:
+          filters:
+            branches:
+              ignore:
+                - swift40
+                - swift41
+                - swift-tensorflow
+      - linux_swift_tensorflow:
+          filters:
+            branches:
+              ignore:
+                - swift40
+                - swift41
+                - swift42
