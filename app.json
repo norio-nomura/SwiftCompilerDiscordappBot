@@ -11,10 +11,14 @@
   "env": {
     "DISCORD_TOKEN": {
       "description": "A secret key for verifying the integrity of signed cookies.",
-      "required": "true"
+      "required": true
+    },
+    "NICKNAME": {
+      "description": "Bot's nickname",
+      "required": false
     },
     "TIMEOUT": {
-      "required": "false"
+      "required": false
     }
   }
 }

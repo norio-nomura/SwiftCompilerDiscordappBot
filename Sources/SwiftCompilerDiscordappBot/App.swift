@@ -30,7 +30,7 @@ struct App {
         ```
         """
     }
-    static let nickname = regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 } ?? ""
+    static let nickname = environment["NICKNAME"] ?? implicitNickname ?? ""
     static let playing = environment["SWIFT_VERSION"].map { "swift-" + $0 } ?? "unkown swift build"
 
     static func log(_ message: String) {
@@ -178,4 +178,5 @@ struct App {
                                                    options: .anchorsMatchLines)
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
     private static let versionInfo = execute(["swift", "--version"]).stdout
+    private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
 }
