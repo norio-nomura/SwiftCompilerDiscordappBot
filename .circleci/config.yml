@@ -30,6 +30,11 @@ jobs:
       - image: norionomura/swift:20180419a
     steps: *steps-for-linux-without-swiftlint
 
+  linux_swift_tensorflow:
+    docker:
+      - image: norionomura/swift-tensorflow:20180426a
+    steps: *steps-for-linux-without-swiftlint
+
 workflows:
   version: 2
   workflow:
@@ -37,3 +42,4 @@ workflows:
       - linux_swift_4.0.3
       - linux_swift_4.1
       - linux_swift_4.2
+      - linux_swift_tensorflow
