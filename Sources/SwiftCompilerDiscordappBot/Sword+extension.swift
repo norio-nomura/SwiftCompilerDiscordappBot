@@ -64,7 +64,7 @@ extension Message {
 
     func parse() -> (options: [String], swiftCode: String) {
         // MARK: first line is used to options for swift
-        let mentionedLine = Message.regexForMentionedLine.firstMatch(in: content)[1]
+        let mentionedLine = Message.regexForMentionedLine.firstMatch(in: content).last ?? ""
         let optionsString = mentions.reduce(mentionedLine) {
             // remove mentions
             $0.replacingOccurrences(of: "<@\($1.id)>", with: "").replacingOccurrences(of: "<@!\($1.id)>", with: "")
