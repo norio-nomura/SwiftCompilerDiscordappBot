@@ -92,6 +92,15 @@
         }
       },
       {
+        "package": "SwiftBacktrace",
+        "repositoryURL": "https://github.com/norio-nomura/SwiftBacktrace",
+        "state": {
+          "branch": "master",
+          "revision": "938247b2931421fad3c4aa23897b3b9e4c5f1568",
+          "version": null
+        }
+      },
+      {
         "package": "Sword",
         "repositoryURL": "https://github.com/norio-nomura/Sword",
         "state": {

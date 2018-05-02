@@ -6,12 +6,13 @@ import PackageDescription
 let package = Package(
     name: "SwiftCompilerDiscordappBot",
     dependencies: [
-        .package(url: "https://github.com/norio-nomura/Sword", .branch("patch-for-swift-bot"))
+        .package(url: "https://github.com/norio-nomura/Sword", .branch("patch-for-swift-bot")),
+        .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
     ],
     targets: [
         .target(
             name: "SwiftCompilerDiscordappBot",
-            dependencies: ["Sword"]
+            dependencies: ["SwiftBacktrace", "Sword"]
         ),
     ]
 )
