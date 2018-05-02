@@ -27,7 +27,7 @@ jobs:
 
   linux_swift_4.2:
     docker:
-      - image: norionomura/swift:20180419a
+      - image: norionomura/swift:swift-4.2-branch
     steps: *steps-for-linux-without-swiftlint
 
   linux_swift_tensorflow:
