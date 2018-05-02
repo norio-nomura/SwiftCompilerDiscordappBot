@@ -1,5 +1,6 @@
 import Foundation
 import Sword
+import SwiftBacktrace
 
 #if os(macOS)
 setlinebuf(Darwin.stdout)
@@ -110,9 +111,21 @@ App.bot.on(.messageDelete) { data in
     channel.deleteAnswer(for: messageID)
 }
 
-signal(SIGTERM) { _ in
+let signalHandler: @convention(c) (Int32) -> Swift.Void = { signo in
     App.bot.disconnect()
-    exit(EXIT_SUCCESS)
+    print(demangledBacktrace().joined(separator: "\n"))
+    exit(128 + signo)
 }
+
+// https://devcenter.heroku.com/articles/dynos#shutdown
+signal(SIGTERM, signalHandler)
+// deadly
+signal(SIGSEGV, signalHandler)
+signal(SIGBUS, signalHandler)
+signal(SIGABRT, signalHandler)
+signal(SIGFPE, signalHandler)
+signal(SIGILL, signalHandler)
+// EXC_BAD_INSTRUCTION
+signal(SIGUSR1, signalHandler)
 
 App.bot.connect()
