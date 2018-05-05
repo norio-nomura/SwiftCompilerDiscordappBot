@@ -32,7 +32,7 @@ jobs:
 
   linux_swift_tensorflow:
     docker:
-      - image: norionomura/swift-tensorflow:20180426a
+      - image: norionomura/swift-tensorflow
     steps: *steps-for-linux-without-swiftlint
 
 workflows:
