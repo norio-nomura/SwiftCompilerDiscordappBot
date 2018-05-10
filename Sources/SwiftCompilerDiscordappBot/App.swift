@@ -74,14 +74,11 @@ struct App {
             }
         }
 
-        // create main.swift
+        // setup input
         let input = swiftCode.isEmpty ? nil : swiftCode.data(using: .utf8)
         if input != nil {
             // support importing RxSwift
-            let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
-            if FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) {
-                options.insert(contentsOf: ["-I", rxSwiftURL.path, "-L", rxSwiftURL.path, "-lRxSwift"], at: 0)
-            }
+            options.insert(contentsOf: optionsForRxSwift, at: 0)
             if !options.contains("-") {
                 options.append("-")
             }
@@ -174,4 +171,9 @@ struct App {
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
     private static let versionInfo = execute(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
+    private static let optionsForRxSwift = { () -> [String] in
+        let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
+        return FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) ?
+            ["-I", rxSwiftURL.path, "-L", rxSwiftURL.path, "-lRxSwift"] : []
+    }()
 }
