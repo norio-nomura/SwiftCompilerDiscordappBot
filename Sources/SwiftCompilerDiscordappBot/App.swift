@@ -74,24 +74,13 @@ struct App {
             }
         }
 
-        // create main.swift
-        if !swiftCode.isEmpty {
+        // setup input
+        let input = swiftCode.isEmpty ? nil : swiftCode.data(using: .utf8)
+        if input != nil {
             // support importing RxSwift
-            let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
-            if FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) {
-                options += [
-                    "-I", rxSwiftURL.path,
-                    "-L", rxSwiftURL.path,
-                    "-lRxSwift"
-                ]
-            }
-
-            let mainSwiftURL = directory.appendingPathComponent("main.swift")
-            do {
-                try swiftCode.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
-                options.append("main.swift")
-            } catch {
-                throw Error(description: "failed to write `main.swift` with error: \(error)")
+            options.insert(contentsOf: optionsForRxSwift, at: 0)
+            if !options.contains("-") {
+                options.append("-")
             }
         }
 
@@ -100,10 +89,12 @@ struct App {
 #if os(macOS)
         // execute in docker
         let temp = directory.path
-        let docker = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
-        let (status, stdout, stderr) = execute(docker + args, in: directory)
+        let docker = ["docker", "run"] +
+            (input != nil ? ["-i"] : []) +
+            ["--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
+        let (status, stdout, stderr) = execute(docker + args, in: directory, input: input)
 #elseif os(Linux)
-        let (status, stdout, stderr) = execute(args, in: directory)
+        let (status, stdout, stderr) = execute(args, in: directory, input: input)
 #endif
         // build content
         var attachOutput = false, attachError = false
@@ -180,4 +171,9 @@ struct App {
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
     private static let versionInfo = execute(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
+    private static let optionsForRxSwift = { () -> [String] in
+        let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
+        return FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) ?
+            ["-I", rxSwiftURL.path, "-L", rxSwiftURL.path, "-lRxSwift"] : []
+    }()
 }
