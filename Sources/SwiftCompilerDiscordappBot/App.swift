@@ -75,23 +75,15 @@ struct App {
         }
 
         // create main.swift
-        if !swiftCode.isEmpty {
+        let input = swiftCode.isEmpty ? nil : swiftCode.data(using: .utf8)
+        if input != nil {
             // support importing RxSwift
             let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
             if FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) {
-                options += [
-                    "-I", rxSwiftURL.path,
-                    "-L", rxSwiftURL.path,
-                    "-lRxSwift"
-                ]
+                options.insert(contentsOf: ["-I", rxSwiftURL.path, "-L", rxSwiftURL.path, "-lRxSwift"], at: 0)
             }
-
-            let mainSwiftURL = directory.appendingPathComponent("main.swift")
-            do {
-                try swiftCode.write(to: mainSwiftURL, atomically: true, encoding: .utf8)
-                options.append("main.swift")
-            } catch {
-                throw Error(description: "failed to write `main.swift` with error: \(error)")
+            if !options.contains("-") {
+                options.append("-")
             }
         }
 
@@ -100,10 +92,12 @@ struct App {
 #if os(macOS)
         // execute in docker
         let temp = directory.path
-        let docker = ["docker", "run", "--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
-        let (status, stdout, stderr) = execute(docker + args, in: directory)
+        let docker = ["docker", "run"] +
+            (input != nil ? ["-i"] : []) +
+            ["--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
+        let (status, stdout, stderr) = execute(docker + args, in: directory, input: input)
 #elseif os(Linux)
-        let (status, stdout, stderr) = execute(args, in: directory)
+        let (status, stdout, stderr) = execute(args, in: directory, input: input)
 #endif
         // build content
         var attachOutput = false, attachError = false
