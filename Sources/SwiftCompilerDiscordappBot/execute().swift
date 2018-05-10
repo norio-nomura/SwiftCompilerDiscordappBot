@@ -8,7 +8,9 @@
 import Dispatch
 import Foundation
 
-func execute(_ args: [String], in directory: URL? = nil) -> (status: Int32, stdout: String, stderr: String) {
+func execute(_ args: [String],
+             in directory: URL? = nil,
+             input: Data? = nil) -> (status: Int32, stdout: String, stderr: String) {
     // swiftlint:disable:previous large_tuple
     let process = Process()
     process.launchPath = "/usr/bin/env"
@@ -25,6 +27,12 @@ func execute(_ args: [String], in directory: URL? = nil) -> (status: Int32, stdo
     let stdoutPipe = Pipe(), stderrPipe = Pipe()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
+    if let input = input {
+        let stdinPipe = Pipe()
+        process.standardInput = stdinPipe.fileHandleForReading
+        stdinPipe.fileHandleForWriting.write(input)
+        stdinPipe.fileHandleForWriting.closeFile()
+    }
     let group = DispatchGroup(), queue = DispatchQueue.global()
     var stdoutData: Data?, stderrData: Data?
     process.launch()
