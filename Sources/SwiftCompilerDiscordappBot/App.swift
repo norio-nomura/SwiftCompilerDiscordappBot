@@ -44,6 +44,22 @@ struct App {
     // ExecutionResult
     typealias ExecutionResult = (args: [String], status: Int32, content: String, stdout: String?, stderr: String?)
 
+    static func execute2(_ args: [String],
+                         in directory: URL? = nil,
+                         input: Data? = nil) -> (status: Int32, stdout: String, stderr: String) {
+#if os(macOS)
+        // execute in docker
+        let docker = ["docker", "run"] +
+            (input != nil ? ["-i"] : []) +
+            ["--rm"] +
+            (directory.map { ["-v", "\($0.path):\($0.path)", "-w", $0.path] } ?? []) +
+            ["norionomura/swift:41"]
+        return execute(docker + args, in: directory, input: input)
+#elseif os(Linux)
+        return execute(args, in: directory, input: input)
+#endif
+    }
+
     static func executeSwift( // swiftlint:disable:this function_body_length
         with options: [String],
         _ swiftCode: String,
@@ -86,16 +102,8 @@ struct App {
 
         // execute swift
         let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options
-#if os(macOS)
-        // execute in docker
-        let temp = directory.path
-        let docker = ["docker", "run"] +
-            (input != nil ? ["-i"] : []) +
-            ["--rm", "-v", "\(temp):\(temp)", "-w", temp, "norionomura/swift:41"]
-        let (status, stdout, stderr) = execute(docker + args, in: directory, input: input)
-#elseif os(Linux)
-        let (status, stdout, stderr) = execute(args, in: directory, input: input)
-#endif
+        let (status, stdout, stderr) = execute2(args, in: directory, input: input)
+
         // build content
         var attachOutput = false, attachError = false
         var content = ""
@@ -169,7 +177,7 @@ struct App {
     private static let regexForVersionInfo = regex(pattern: "^(Apple )?Swift version (\\S+) \\(.*\\)$",
                                                    options: .anchorsMatchLines)
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
-    private static let versionInfo = execute(["swift", "--version"]).stdout
+    private static let versionInfo = execute2(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
     private static let optionsForRxSwift = { () -> [String] in
         let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
