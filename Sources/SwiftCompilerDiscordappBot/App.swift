@@ -47,6 +47,7 @@ struct App {
     static func execute2(_ args: [String],
                          in directory: URL? = nil,
                          input: Data? = nil) -> (status: Int32, stdout: String, stderr: String) {
+        // swiftlint:disable:previous large_tuple
 #if os(macOS)
         // execute in docker
         let docker = ["docker", "run"] +
@@ -60,7 +61,7 @@ struct App {
 #endif
     }
 
-    static func executeSwift( // swiftlint:disable:this function_body_length
+    static func executeSwift( // swiftlint:disable:this cyclomatic_complexity function_body_length
         with options: [String],
         _ swiftCode: String,
         handler: (ExecutionResult) -> Void) throws {
