@@ -30,6 +30,11 @@ jobs:
       - image: norionomura/swift:swift-4.2-branch
     steps: *steps-for-linux-without-swiftlint
 
+  linux_swift_nightly:
+    docker:
+      - image: norionomura/swift:nightly
+    steps: *steps-for-linux-without-swiftlint
+
   linux_swift_tensorflow:
     docker:
       - image: norionomura/swift-tensorflow
@@ -45,6 +50,7 @@ workflows:
               ignore:
                 - swift41
                 - swift42
+                - swift
                 - swift-tensorflow
       - linux_swift_4.1.1:
           filters:
@@ -52,6 +58,7 @@ workflows:
               ignore:
                 - swift40
                 - swift42
+                - swift
                 - swift-tensorflow
       - linux_swift_4.2:
           filters:
@@ -59,6 +66,15 @@ workflows:
               ignore:
                 - swift40
                 - swift41
+                - swift
+                - swift-tensorflow
+      - linux_swift_nightly:
+          filters:
+            branches:
+              ignore:
+                - swift40
+                - swift41
+                - swift42
                 - swift-tensorflow
       - linux_swift_tensorflow:
           filters:
@@ -67,3 +83,4 @@ workflows:
                 - swift40
                 - swift41
                 - swift42
+                - swift
