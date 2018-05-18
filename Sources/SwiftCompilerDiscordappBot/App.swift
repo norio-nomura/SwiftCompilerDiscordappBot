@@ -90,11 +90,16 @@ struct App {
             }
         }
 
+        // check command existance. e.g. `swift-demangle`
+        let commandExists = options.isEmpty ? false : execute2(["which", "swift-\(options[0])"]).status == 0
+
         // setup input
         let input = swiftCode.isEmpty ? nil : swiftCode.data(using: .utf8)
         if input != nil {
             // support importing RxSwift
-            options.insert(contentsOf: optionsForRxSwift, at: 0)
+            if !commandExists {
+                options.insert(contentsOf: optionsForRxSwift, at: 0)
+            }
             if !options.contains("-") {
                 options.append("-")
             }
