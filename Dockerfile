@@ -4,11 +4,15 @@ RUN apt-get update && apt-get install -y \
     libsodium-dev libunwind8 && \
     rm -r /var/lib/apt/lists/* && \
     useradd -m swiftbot
-ENV RXSWIFT_VERSION=4.1.2
-RUN mkdir /RxSwift && cd /RxSwift && \
-    curl -L https://github.com/ReactiveX/RxSwift/archive/$RXSWIFT_VERSION.tar.gz | tar zx --strip-components 1 && \
-    swift build --target RxSwift -Xswiftc -emit-library -Xswiftc -o -Xswiftc `swift build --show-bin-path`/libRxSwift.so && \
+
+ADD Libraries /Libraries
+RUN chown -R swiftbot /Libraries
+USER swiftbot
+RUN cd /Libraries && \
+    swift build && \
     chmod -R go+rx .build
+
+USER root
 ADD . /SwiftCompilerDiscordappBot
 RUN cd /SwiftCompilerDiscordappBot && \
     SWIFTPM_FLAGS="--configuration release --static-swift-stdlib" && \
