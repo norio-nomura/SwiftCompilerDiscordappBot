@@ -7,6 +7,7 @@
 
 import Foundation
 import Sword
+import Yams
 
 struct App {
     static let swordOptions: SwordOptions = {
@@ -99,7 +100,7 @@ struct App {
         if input != nil {
             // support importing RxSwift
             if !commandExists {
-                options.insert(contentsOf: optionsForRxSwift, at: 0)
+                options.insert(contentsOf: optionsForLibraries, at: 0)
             }
             if !options.contains("-") {
                 options.append("-")
@@ -185,9 +186,26 @@ struct App {
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
     private static let versionInfo = execute2(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
-    private static let optionsForRxSwift = { () -> [String] in
-        let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
-        return FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) ?
-            ["-I", rxSwiftURL.path, "-L", rxSwiftURL.path, "-lRxSwift"] : []
+    private static let optionsForLibraries = { () -> [String] in
+        let librariesURL = URL(fileURLWithPath: "/Libraries/.build/x86_64-unknown-linux/debug")
+        guard FileManager.default.fileExists(atPath: librariesURL.appendingPathComponent("libLibraries.so").path) else {
+            return []
+        }
+
+        do {
+            let url = URL(fileURLWithPath: "/Libraries/.build/debug.yaml")
+            guard let yaml = try String(data: Data(contentsOf: url), encoding: .utf8),
+                let node = try Yams.compose(yaml: yaml),
+                let otherArgs = node["commands"]?["C.Run.module"]?["other-args"]?.array(of: String.self),
+                let index = otherArgs.index(of: "-DSWIFT_PACKAGE").map(otherArgs.index(after:))
+                else { return [] }
+
+            return ["-I", librariesURL.path,
+                    "-L", librariesURL.path,
+                    "-lLibraries"] + otherArgs[index...]
+        } catch {
+            print(error)
+            return []
+        }
     }()
 }

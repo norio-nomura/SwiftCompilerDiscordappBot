@@ -7,12 +7,13 @@ let package = Package(
     name: "SwiftCompilerDiscordappBot",
     dependencies: [
         .package(url: "https://github.com/norio-nomura/Sword", .branch("patch-for-swift-bot")),
-        .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
+        .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master")),
+        .package(url: "https://github.com/jpsim/Yams", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "SwiftCompilerDiscordappBot",
-            dependencies: ["SwiftBacktrace", "Sword"]
+            dependencies: ["SwiftBacktrace", "Sword", "Yams"]
         ),
     ]
 )
