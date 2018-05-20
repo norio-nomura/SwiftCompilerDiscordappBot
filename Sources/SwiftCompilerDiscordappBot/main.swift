@@ -107,7 +107,7 @@ App.bot.on(.messageDelete) { data in
 
 let signalHandler: @convention(c) (Int32) -> Swift.Void = { signo in
     App.bot.disconnect()
-    fputs(demangledBacktrace().joined(separator: "\n"), stderr)
+    fputs(simplifiedDemangledBacktrace().joined(separator: "\n"), stderr)
     fflush(stderr)
     exit(128 + signo)
 }
