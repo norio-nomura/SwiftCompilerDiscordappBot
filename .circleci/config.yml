@@ -7,11 +7,13 @@ aliases:
     - run: swiftlint lint --strict --reporter junit > build/reports/junit.xml
     - store_test_results:
         path: build/reports/
+    - run: swift build --package-path Libraries
 
   - &steps-for-linux-without-swiftlint
     - checkout
     - run: apt-get update && apt-get install -y libsodium-dev
     - run: swift build
+    - run: swift build --package-path Libraries
 
 version: 2
 jobs:
