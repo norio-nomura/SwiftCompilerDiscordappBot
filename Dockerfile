@@ -14,8 +14,15 @@ RUN cd /Libraries && \
 
 USER root
 ADD . /SwiftCompilerDiscordappBot
+ARG USE_YAMS=yes
 RUN cd /SwiftCompilerDiscordappBot && \
-    SWIFTPM_FLAGS="--configuration release --static-swift-stdlib" && \
+    USE_YAMS=${USE_YAMS} && \
+    if [ "${USE_YAMS}" = "yes" ]; then\
+        SWIFTPM_FLAGS="--configuration release --static-swift-stdlib -Xswiftc -DUSE_YAMS"; \
+    else \
+        swift package update; \
+        SWIFTPM_FLAGS="--configuration release --static-swift-stdlib"; \
+    fi && \
     swift build $SWIFTPM_FLAGS && \
     mv `swift build $SWIFTPM_FLAGS --show-bin-path`/SwiftCompilerDiscordappBot /usr/bin && \
     cd / && \

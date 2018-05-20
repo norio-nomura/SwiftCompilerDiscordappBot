@@ -7,7 +7,9 @@
 
 import Foundation
 import Sword
+#if USE_YAMS
 import Yams
+#endif
 
 struct App {
     static let swordOptions: SwordOptions = {
@@ -187,25 +189,27 @@ struct App {
     private static let versionInfo = execute2(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
     private static let optionsForLibraries = { () -> [String] in
-        let librariesURL = URL(fileURLWithPath: "/Libraries/.build/x86_64-unknown-linux/debug")
-        guard FileManager.default.fileExists(atPath: librariesURL.appendingPathComponent("libLibraries.so").path) else {
+        let buildURL = URL(fileURLWithPath: "/Libraries/.build/")
+        let binaryURL = buildURL.appendingPathComponent("x86_64-unknown-linux/debug")
+        guard FileManager.default.fileExists(atPath: binaryURL.appendingPathComponent("libLibraries.so").path) else {
             return []
         }
 
+        var args = ["-I", binaryURL.path, "-L", binaryURL.path, "-lLibraries"]
         do {
-            let url = URL(fileURLWithPath: "/Libraries/.build/debug.yaml")
-            guard let yaml = try String(data: Data(contentsOf: url), encoding: .utf8),
-                let node = try Yams.compose(yaml: yaml),
+#if USE_YAMS
+            let debugYamlURL = buildURL.appendingPathComponent("debug.yaml")
+            guard let debugYaml = try String(data: Data(contentsOf: debugYamlURL), encoding: .utf8),
+                let node = try Yams.compose(yaml: debugYaml),
                 let otherArgs = node["commands"]?["C.Run.module"]?["other-args"]?.array(of: String.self),
                 let index = otherArgs.index(of: "-DSWIFT_PACKAGE").map(otherArgs.index(after:))
-                else { return [] }
-
-            return ["-I", librariesURL.path,
-                    "-L", librariesURL.path,
-                    "-lLibraries"] + otherArgs[index...]
+                else { return args }
+            args.append(contentsOf: otherArgs[index...])
+#endif
+            return args
         } catch {
             App.log("`optionsForLibraries` failed with error: \(error)")
-            return []
+            return args
         }
     }()
 }
