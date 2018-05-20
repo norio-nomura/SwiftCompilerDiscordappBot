@@ -2,13 +2,7 @@ import Foundation
 import Sword
 import SwiftBacktrace
 
-#if os(macOS)
-setlinebuf(Darwin.stdout)
-setlinebuf(Darwin.stderr)
-#else
-setlinebuf(Glibc.stdout)
-setlinebuf(Glibc.stderr)
-#endif
+setlinebuf(stdout)
 
 // MARK: - edit status
 App.bot.editStatus(to: "online", playing: App.playing)
@@ -113,7 +107,8 @@ App.bot.on(.messageDelete) { data in
 
 let signalHandler: @convention(c) (Int32) -> Swift.Void = { signo in
     App.bot.disconnect()
-    print(demangledBacktrace().joined(separator: "\n"))
+    fputs(demangledBacktrace().joined(separator: "\n"), stderr)
+    fflush(stderr)
     exit(128 + signo)
 }
 

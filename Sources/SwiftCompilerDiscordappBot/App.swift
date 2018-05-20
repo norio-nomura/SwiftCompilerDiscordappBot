@@ -204,7 +204,7 @@ struct App {
                     "-L", librariesURL.path,
                     "-lLibraries"] + otherArgs[index...]
         } catch {
-            print(error)
+            App.log("`optionsForLibraries` failed with error: \(error)")
             return []
         }
     }()
