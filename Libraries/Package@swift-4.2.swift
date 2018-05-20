@@ -13,12 +13,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"),
-        .package(url: "https://github.com/vapor/vapor.git", from: "2.4.4")
+        // SwiftNIO is not yet buildable with Swift 4.2
+        // .package(url: "https://github.com/vapor/vapor.git", from: "3.0.0")
     ],
     targets: [
         .target(
             name: "Libraries",
-            dependencies: ["RxSwift", "Vapor"]),
+            dependencies: ["RxSwift"]),
         .target(
             name: "Run",
             dependencies: ["Libraries"]),
