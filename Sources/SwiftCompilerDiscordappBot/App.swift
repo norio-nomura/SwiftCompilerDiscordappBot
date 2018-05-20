@@ -108,7 +108,7 @@ struct App {
         }
 
         // execute swift
-        args.insert(contentsOf: ["timeout", "--signal=KILL", "\(timeout)", "swift"], at:0 )
+        args.insert(contentsOf: ["timeout", "--signal=KILL", "\(timeout)", "swift"], at: 0)
         let (status, stdout, stderr) = execute2(args, in: directory, input: input)
 
         // build content
