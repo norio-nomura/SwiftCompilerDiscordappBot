@@ -7,6 +7,9 @@
 
 import Foundation
 import Sword
+#if USE_YAMS
+import Yams
+#endif
 
 struct App {
     static let swordOptions: SwordOptions = {
@@ -42,7 +45,7 @@ struct App {
     }
 
     // ExecutionResult
-    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdout: String?, stderr: String?)
+    typealias ExecutionResult = (status: Int32, content: String, stdout: String?, stderr: String?)
 
     static func execute2(_ args: [String],
                          in directory: URL? = nil,
@@ -65,7 +68,7 @@ struct App {
         with options: [String],
         _ swiftCode: String,
         handler: (ExecutionResult) -> Void) throws {
-        var options = options
+        var args = options
 
         // MARK: create temporary directory
         let sessionUUID = UUID().uuidString
@@ -92,22 +95,22 @@ struct App {
         }
 
         // check command existance. e.g. `swift-demangle`
-        let commandExists = options.isEmpty ? false : execute2(["which", "swift-\(options[0])"]).status == 0
+        let commandExists = args.isEmpty ? false : execute2(["which", "swift-\(args[0])"]).status == 0
 
         // setup input
         let input = swiftCode.isEmpty ? nil : swiftCode.data(using: .utf8)
         if input != nil {
             // support importing RxSwift
             if !commandExists {
-                options.insert(contentsOf: optionsForRxSwift, at: 0)
+                args.insert(contentsOf: optionsForLibraries, at: 0)
             }
-            if !options.contains("-") {
-                options.append("-")
+            if !args.contains("-") {
+                args.append("-")
             }
         }
 
         // execute swift
-        let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options
+        args.insert(contentsOf: ["timeout", "--signal=KILL", "\(timeout)", "swift"], at: 0)
         let (status, stdout, stderr) = execute2(args, in: directory, input: input)
 
         // build content
@@ -169,7 +172,7 @@ struct App {
 
         let optionalStdout = attachOutput ? stdout : nil
         let optionalStderr = attachError ? stderr : nil
-        handler((args, status, content, optionalStdout, optionalStderr))
+        handler((status, content, optionalStdout, optionalStderr))
     }
 
     // private
@@ -185,9 +188,28 @@ struct App {
     private static let timeout = environment["TIMEOUT"].flatMap({ Int($0) }) ?? 30
     private static let versionInfo = execute2(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
-    private static let optionsForRxSwift = { () -> [String] in
-        let rxSwiftURL = URL(fileURLWithPath: "/RxSwift/.build/x86_64-unknown-linux/debug")
-        return FileManager.default.fileExists(atPath: rxSwiftURL.appendingPathComponent("libRxSwift.so").path) ?
-            ["-I", rxSwiftURL.path, "-L", rxSwiftURL.path, "-lRxSwift"] : []
+    private static let optionsForLibraries = { () -> [String] in
+        let buildURL = URL(fileURLWithPath: "/Libraries/.build/")
+        let binaryURL = buildURL.appendingPathComponent("x86_64-unknown-linux/debug")
+        guard FileManager.default.fileExists(atPath: binaryURL.appendingPathComponent("libLibraries.so").path) else {
+            return []
+        }
+
+        var args = ["-I", binaryURL.path, "-L", binaryURL.path, "-lLibraries"]
+        do {
+#if USE_YAMS
+            let debugYamlURL = buildURL.appendingPathComponent("debug.yaml")
+            guard let debugYaml = try String(data: Data(contentsOf: debugYamlURL), encoding: .utf8),
+                let node = try Yams.compose(yaml: debugYaml),
+                let otherArgs = node["commands"]?["C.Run.module"]?["other-args"]?.array(of: String.self),
+                let index = otherArgs.index(of: "-DSWIFT_PACKAGE").map(otherArgs.index(after:))
+                else { return args }
+            args.append(contentsOf: otherArgs[index...])
+#endif
+            return args
+        } catch {
+            App.log("`optionsForLibraries` failed with error: \(error)")
+            return args
+        }
     }()
 }
