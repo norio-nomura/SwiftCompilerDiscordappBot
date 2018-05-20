@@ -43,7 +43,7 @@ struct App {
     }
 
     // ExecutionResult
-    typealias ExecutionResult = (args: [String], status: Int32, content: String, stdout: String?, stderr: String?)
+    typealias ExecutionResult = (status: Int32, content: String, stdout: String?, stderr: String?)
 
     static func execute2(_ args: [String],
                          in directory: URL? = nil,
@@ -66,7 +66,7 @@ struct App {
         with options: [String],
         _ swiftCode: String,
         handler: (ExecutionResult) -> Void) throws {
-        var options = options
+        var args = options
 
         // MARK: create temporary directory
         let sessionUUID = UUID().uuidString
@@ -93,22 +93,22 @@ struct App {
         }
 
         // check command existance. e.g. `swift-demangle`
-        let commandExists = options.isEmpty ? false : execute2(["which", "swift-\(options[0])"]).status == 0
+        let commandExists = args.isEmpty ? false : execute2(["which", "swift-\(args[0])"]).status == 0
 
         // setup input
         let input = swiftCode.isEmpty ? nil : swiftCode.data(using: .utf8)
         if input != nil {
             // support importing RxSwift
             if !commandExists {
-                options.insert(contentsOf: optionsForLibraries, at: 0)
+                args.insert(contentsOf: optionsForLibraries, at: 0)
             }
-            if !options.contains("-") {
-                options.append("-")
+            if !args.contains("-") {
+                args.append("-")
             }
         }
 
         // execute swift
-        let args = ["timeout", "--signal=KILL", "\(timeout)", "swift"] + options
+        args.insert(contentsOf: ["timeout", "--signal=KILL", "\(timeout)", "swift"], at:0 )
         let (status, stdout, stderr) = execute2(args, in: directory, input: input)
 
         // build content
@@ -170,7 +170,7 @@ struct App {
 
         let optionalStdout = attachOutput ? stdout : nil
         let optionalStderr = attachError ? stderr : nil
-        handler((args, status, content, optionalStdout, optionalStderr))
+        handler((status, content, optionalStdout, optionalStderr))
     }
 
     // private

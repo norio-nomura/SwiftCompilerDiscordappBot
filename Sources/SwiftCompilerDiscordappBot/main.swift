@@ -57,8 +57,8 @@ App.bot.on(.messageCreate) { data in
 
     do {
         try App.executeSwift(with: options, swiftCode) { result in
-            let (args, status, content, stdout, stderr) = result
-            message.log("executed: \(args), status: \(status)")
+            let (status, content, stdout, stderr) = result
+            message.log("executed `swift` with options: \(options), status: \(status)")
             message.answer(with: content, stdout: stdout, stderr: stderr)
         }
     } catch {
@@ -97,8 +97,8 @@ App.bot.on(.messageUpdate) { data in
 
     do {
         try App.executeSwift(with: options, swiftCode) { result in
-            let (args, status, content, stdout, stderr) = result
-            message.log("executed: \(args), status: \(status)")
+            let (status, content, stdout, stderr) = result
+            message.log("executed `swift` with options: \(options), status: \(status)")
             message.answer(with: content, stdout: stdout, stderr: stderr)
         }
     } catch {
