@@ -3,7 +3,7 @@
 
 import PackageDescription
 
-let package = Package(
+var package = Package(
     name: "Libraries",
     products: [
         .library(
@@ -13,8 +13,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"),
-        // SwiftNIO is not yet buildable with Swift 4.2
-        // .package(url: "https://github.com/vapor/vapor.git", from: "3.0.0")
     ],
     targets: [
         .target(
@@ -28,3 +26,8 @@ let package = Package(
             dependencies: ["Libraries"])
     ]
 )
+
+#if !canImport(TensorFlow)
+package.dependencies.append(.package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"))
+package.targets[0].dependencies.append("Vapor")
+#endif
