@@ -36,9 +36,9 @@ func execute(_ args: [String],
     let group = DispatchGroup(), queue = DispatchQueue.global()
     var stdoutData: Data?, stderrData: Data?
     process.launch()
-    queue.async(group: group) { process.waitUntilExit() }
     queue.async(group: group) { stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile() }
     queue.async(group: group) { stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile() }
+    process.waitUntilExit()
     group.wait()
     let stdout = stdoutData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
     let stderr = stderrData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
