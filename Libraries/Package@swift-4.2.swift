@@ -13,11 +13,12 @@ var package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"),
+        .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
     ],
     targets: [
         .target(
             name: "Libraries",
-            dependencies: ["RxSwift"]),
+            dependencies: ["RxSwift", "SwiftBacktrace"]),
         .target(
             name: "Run",
             dependencies: ["Libraries"]),
