@@ -107,20 +107,20 @@ App.bot.on(.messageDelete) { data in
 
 let signalHandler: @convention(c) (Int32) -> Swift.Void = { signo in
     App.bot.disconnect()
-    fputs(demangledBacktrace().joined(separator: "\n"), stderr)
+    fputs(backtrace().joined(separator: "\n") + "\nsignal: \(signo)", stderr)
     fflush(stderr)
     exit(128 + signo)
 }
 
 // https://devcenter.heroku.com/articles/dynos#shutdown
-signal(SIGTERM, signalHandler)
+handle(signal: SIGTERM, action: signalHandler)
 // deadly
-signal(SIGSEGV, signalHandler)
-signal(SIGBUS, signalHandler)
-signal(SIGABRT, signalHandler)
-signal(SIGFPE, signalHandler)
-signal(SIGILL, signalHandler)
+handle(signal: SIGSEGV, action: signalHandler)
+handle(signal: SIGBUS, action: signalHandler)
+handle(signal: SIGABRT, action: signalHandler)
+handle(signal: SIGFPE, action: signalHandler)
+handle(signal: SIGILL, action: signalHandler)
 // EXC_BAD_INSTRUCTION
-signal(SIGUSR1, signalHandler)
+handle(signal: SIGUSR1, action: signalHandler)
 
 App.bot.connect()
