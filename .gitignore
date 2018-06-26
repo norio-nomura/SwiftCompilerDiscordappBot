@@ -1,6 +1,6 @@
 .DS_Store
 .env
-/.build
+.build
 /Packages
-/*.xcodeproj
+*.xcodeproj
 temp
