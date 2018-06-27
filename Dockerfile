@@ -10,7 +10,7 @@ RUN chown -R swiftbot /Libraries
 USER swiftbot
 RUN cd /Libraries && \
     swift build && \
-    chmod -R go+rx .build
+    chmod -R go+rx .build || true
 
 USER root
 ADD . /SwiftCompilerDiscordappBot
