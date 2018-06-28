@@ -5,7 +5,6 @@ services:
       context: .
       args:
         DOCKER_IMAGE: ${DOCKER_IMAGE:-norionomura/swift:412}
-        USE_YAMS: ${USE_YAMS:-yes}
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       SWORD_LOGGING: ${SWORD_LOGGING}

@@ -48,8 +48,6 @@ jobs:
   linux_swift_tensorflow:
     docker:
       - image: norionomura/swift-tensorflow
-    environment:
-      USE_YAMS: no
     steps: *steps-for-linux-without-swiftlint
 
 workflows:
