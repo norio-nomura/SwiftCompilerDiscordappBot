@@ -2,5 +2,5 @@ build:
   docker:
     worker: Dockerfile
   config:
-    DOCKER_IMAGE: norionomura/swift:412
+    DOCKER_IMAGE: norionomura/swift:413
 
