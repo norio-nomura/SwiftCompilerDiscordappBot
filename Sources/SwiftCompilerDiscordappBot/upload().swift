@@ -32,7 +32,7 @@ func upload(_ text: String?, as filename: String) -> String? {
     data.append(text)
     data.append("\r\n--\(boundary)--\r\n")
 
-    var uploadedLink: String? = nil
+    var uploadedLink: String?
     let semaphore = DispatchSemaphore(value: 0)
     let task = session.uploadTask(with: request, from: data) { data, response, error in
         defer { semaphore.signal() }

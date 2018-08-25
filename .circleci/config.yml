@@ -15,14 +15,6 @@ aliases:
     - run: swift build
     - run: swift build --package-path Libraries
 
-  - &steps-for-linux-without-swiftlint-xfail
-    - checkout
-    - run: apt-get update && apt-get install -y libsodium-dev
-    - run: swift build
-    - run: 
-        command: |
-          ! swift build --package-path Libraries
-
 version: 2
 jobs:
   linux_swift_4.0.3:
@@ -43,7 +35,7 @@ jobs:
   linux_swift_nightly:
     docker:
       - image: norionomura/swift:nightly
-    steps: *steps-for-linux-without-swiftlint-xfail
+    steps: *steps-for-linux-without-swiftlint
 
   linux_swift_tensorflow:
     docker:
