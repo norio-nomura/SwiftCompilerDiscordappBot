@@ -102,8 +102,11 @@ struct App {
             if !commandExists {
                 args.insert(contentsOf: optionsForLibraries, at: 0)
             }
-            if !args.contains("-") {
+            if !args.contains("-") && !args.contains("-repl") {
                 args.append("-")
+            }
+            if args.contains("-frontend") {
+                args = ["-frontend"] + args.flatMap { $0 == "-frontend" ? nil : $0 }
             }
         }
 
