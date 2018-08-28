@@ -102,7 +102,7 @@ struct App {
             if !commandExists {
                 args.insert(contentsOf: optionsForLibraries, at: 0)
             }
-            if !args.contains("-") {
+            if !args.contains("-") && !args.contains("-repl") {
                 args.append("-")
             }
         }
