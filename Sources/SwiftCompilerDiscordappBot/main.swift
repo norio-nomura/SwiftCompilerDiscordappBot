@@ -121,22 +121,12 @@ App.bot.on(.messageDelete) { data in
     channel.deleteAnswer(for: messageID)
 }
 
-let signalHandler: @convention(c) (Int32) -> Swift.Void = { signo in
+// https://devcenter.heroku.com/articles/dynos#shutdown
+SwiftBacktrace.setInterruptFunction { signo in
     App.bot.disconnect()
     fputs(backtrace().joined(separator: "\n") + "\nsignal: \(signo)", stderr)
     fflush(stderr)
     exit(128 + signo)
 }
-
-// https://devcenter.heroku.com/articles/dynos#shutdown
-handle(signal: SIGTERM, action: signalHandler)
-// deadly
-handle(signal: SIGSEGV, action: signalHandler)
-handle(signal: SIGBUS, action: signalHandler)
-handle(signal: SIGABRT, action: signalHandler)
-handle(signal: SIGFPE, action: signalHandler)
-handle(signal: SIGILL, action: signalHandler)
-// EXC_BAD_INSTRUCTION
-handle(signal: SIGUSR1, action: signalHandler)
 
 App.bot.connect()
