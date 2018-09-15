@@ -42,7 +42,11 @@ App.bot.on(.messageCreate) { data in
     // MARK: parse message
     let (options, swiftCode) = message.parse()
     guard !(options.isEmpty && swiftCode.isEmpty) else {
-        message.answer(with: App.helpMessage)
+        message.answer(with: App.helpMessage) { _, error in
+            if let error = error {
+                App.log("failed to answer at \(#line) with error: \(error)")
+            }
+        }
         return
     }
 
@@ -53,7 +57,11 @@ App.bot.on(.messageCreate) { data in
         try App.executeSwift(with: options, swiftCode) { result in
             let (status, content, stdout, stderr) = result
             message.log("executed `swift` with options: \(options), status: \(status)")
-            message.answer(with: content, stdout: stdout, stderr: stderr)
+            message.answer(with: content, stdout: stdout, stderr: stderr) { _, error in
+                if let error = error {
+                    App.log("failed to answer at \(#line) with error: \(error)")
+                }
+            }
         }
     } catch {
         message.answer(with: error)
@@ -93,10 +101,18 @@ App.bot.on(.messageUpdate) { data in
         try App.executeSwift(with: options, swiftCode) { result in
             let (status, content, stdout, stderr) = result
             message.log("executed `swift` with options: \(options), status: \(status)")
-            message.answer(with: content, stdout: stdout, stderr: stderr)
+            message.answer(with: content, stdout: stdout, stderr: stderr) { _, error in
+                if let error = error {
+                    App.log("failed to answer at \(#line) with error: \(error)")
+                }
+            }
         }
     } catch {
-        message.answer(with: error)
+        message.answer(with: error) { _, error in
+            if let error = error {
+                App.log("failed to answer at \(#line) with error: \(error)")
+            }
+        }
     }
 }
 
