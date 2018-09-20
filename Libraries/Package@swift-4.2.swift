@@ -33,6 +33,8 @@ if ProcessInfo.processInfo.environment["SWIFT_VERSION"] ?? "" < "DEVELOPMENT-SNA
     package.targets[0].dependencies.append("RxSwift")
 }
 #if !canImport(TensorFlow)
+package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
+package.targets[0].dependencies.append("SwiftyMath")
 package.dependencies.append(.package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"))
 package.targets[0].dependencies.append("Vapor")
 #endif
