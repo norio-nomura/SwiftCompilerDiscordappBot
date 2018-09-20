@@ -2,6 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
 
 var package = Package(
     name: "Libraries",
@@ -12,13 +13,12 @@ var package = Package(
             targets: ["Libraries"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"),
         .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
     ],
     targets: [
         .target(
             name: "Libraries",
-            dependencies: ["RxSwift", "SwiftBacktrace"]),
+            dependencies: ["SwiftBacktrace"]),
         .target(
             name: "Run",
             dependencies: ["Libraries"]),
@@ -28,7 +28,13 @@ var package = Package(
     ]
 )
 
+if ProcessInfo.processInfo.environment["SWIFT_VERSION"] ?? "" < "DEVELOPMENT-SNAPSHOT-2018-09-18-a" {
+    package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
+    package.targets[0].dependencies.append("RxSwift")
+}
 #if !canImport(TensorFlow)
+package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
+package.targets[0].dependencies.append("SwiftyMath")
 package.dependencies.append(.package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"))
 package.targets[0].dependencies.append("Vapor")
 #endif
