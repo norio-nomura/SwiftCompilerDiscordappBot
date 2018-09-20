@@ -199,7 +199,9 @@ struct App {
             let url = URL(fileURLWithPath: "/Libraries/.build/debug.yaml")
             guard let yaml = try String(data: Data(contentsOf: url), encoding: .utf8),
                 let node = try Yams.compose(yaml: yaml),
-                let otherArgs = node["commands"]?["C.Run.module"]?["other-args"]?.array(of: String.self),
+                let commands = node["commands"],
+                let module = commands["C.Run.module"] ?? commands["C.Run-debug.module"],
+                let otherArgs = module["other-args"]?.array(of: String.self),
                 let index = otherArgs.index(of: "-DSWIFT_PACKAGE").map(otherArgs.index(after:))
                 else { return [] }
 
