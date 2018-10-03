@@ -9,6 +9,7 @@ services:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       SWORD_LOGGING: ${SWORD_LOGGING}
       TIMEOUT: ${TIMEOUT}
+      UPLOADER: ${UPLOADER}
     env_file: .env
     volumes:
       - .:/SwiftCompilerDiscordappBot

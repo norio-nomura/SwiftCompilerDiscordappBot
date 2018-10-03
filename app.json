@@ -19,6 +19,10 @@
     },
     "TIMEOUT": {
       "required": false
+    },
+    "UPLOADER": {
+      "description": "Select uploader from [`file.io`, `ptpb.pw`]",
+      "required": false
     }
   }
 }
