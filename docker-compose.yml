@@ -3,13 +3,14 @@ services:
   playground:
     build: 
       context: .
+      dockerfile: Dockerfile.debug
       args:
         DOCKER_IMAGE: ${DOCKER_IMAGE:-norionomura/swift:412}
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       SWORD_LOGGING: ${SWORD_LOGGING}
       TIMEOUT: ${TIMEOUT}
+      UPLOADER: ${UPLOADER}
     env_file: .env
-    volumes:
-      - .:/SwiftCompilerDiscordappBot
+    tty: true
     command: ["SwiftCompilerDiscordappBot"]

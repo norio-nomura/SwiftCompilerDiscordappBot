@@ -8,7 +8,64 @@
 import Dispatch
 import Foundation
 
-let uploaderURL = URL(string: "https://file.io/")!
+enum Uploader: String {
+    case fileio = "file.io"
+    case ptpbpw = "ptpb.pw"
+}
+
+let uploader = ProcessInfo.processInfo.environment["UPLOADER"].flatMap(Uploader.init(rawValue:)) ?? .ptpbpw
+
+func upload(_ text: String?, as filename: String) -> String? {
+    switch uploader {
+    case .fileio:
+        return Fileio.upload(text, as: filename)
+    case .ptpbpw:
+        return Ptpbpw.upload(text, as: filename)
+    }
+}
+
+// MARK: - https://file.io
+
+struct Fileio {
+    static let url = URL(string: "https://file.io/")!
+
+    static func upload(_ text: String?, as filename: String) -> String? {
+        guard let payload: FileioPayload = upload0(text, name: "file", as: filename, to: url),
+            payload.success else { return nil }
+        return payload.link
+    }
+
+    private struct FileioPayload: Decodable {
+        var success: Bool
+        var key: String
+        var link: String
+        var expiry: String
+    }
+}
+
+// MARK: - https://ptpb.pw
+
+struct Ptpbpw {
+    static let ptpbpwURL = URL(string: "https://ptpb.pw")!
+
+    static func upload(_ text: String?, as filename: String) -> String? {
+        guard let payload: PtpbpwPayload = upload0(text, name: "c", as: filename, to: ptpbpwURL),
+            payload.status == "created" else { return nil }
+        App.log("Uploaded `\(payload.url)` that can be deleted by `curl -X DELETE https://ptpb.pw/\(payload.uuid)`.")
+        return payload.url + "/text"
+    }
+
+    private struct PtpbpwPayload: Decodable {
+        var date: String
+        var digest: String
+        var long: String
+        var short: String
+        var size: Int
+        var status: String
+        var url: String
+        var uuid: String
+    }
+}
 
 #if os(macOS) || os(Linux) && swift(>=4.1)
 let session = URLSession.shared
@@ -16,23 +73,24 @@ let session = URLSession.shared
 let session = URLSession(configuration: .default)
 #endif
 
-func upload(_ text: String?, as filename: String) -> String? {
+private func upload0<T: Decodable>(_ text: String?, name: String, as filename: String, to url: URL) -> T? {
     guard let text = text else { return nil }
 
-    var request = URLRequest(url: uploaderURL)
+    var request = URLRequest(url: url)
     request.httpMethod = "POST"
 
     let boundary = UUID().uuidString
+    request.setValue("application/json", forHTTPHeaderField: "accept")
     request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
     var data = Data()
     data.append("--\(boundary)\r\n")
-    data.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
-    data.append("Content-Type: text/plain\r\n\r\n")
+    data.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
+    data.append("Content-Type: application/octet-stream\r\n\r\n")
     data.append(text)
     data.append("\r\n--\(boundary)--\r\n")
 
-    var uploadedLink: String?
+    var payload: T?
     let semaphore = DispatchSemaphore(value: 0)
     let task = session.uploadTask(with: request, from: data) { data, response, error in
         defer { semaphore.signal() }
@@ -49,29 +107,19 @@ func upload(_ text: String?, as filename: String) -> String? {
             return
         }
         guard let data = data else {
-            App.log("failed to unwrap data returned from file.io")
+            App.log("failed to unwrap data returned from \(url)")
             return
         }
         do {
-            let payload = try JSONDecoder().decode(Payload.self, from: data)
-            if payload.success {
-                uploadedLink = payload.link
-            }
+            payload = try JSONDecoder().decode(T.self, from: data)
         } catch {
-            App.log("failed to decode payload with error: \(error)")
+            App.log("failed to decode response with error: \(error)")
         }
     }
     task.resume()
     semaphore.wait()
 
-    return uploadedLink
-}
-
-private struct Payload: Decodable {
-    var success: Bool
-    var key: String
-    var link: String
-    var expiry: String
+    return payload
 }
 
 extension Data {
