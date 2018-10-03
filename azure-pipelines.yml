@@ -11,6 +11,14 @@ resources:
   - container: tensorflow
     image: norionomura/swift-tensorflow
 
+trigger:
+- master
+- swift40
+- swift41
+- swift42
+- swift
+- swift-tensorflow
+
 jobs:
 - job: swift40
   condition: not(in(variables['Build.SourceBranchName'], 'swift41', 'swift42', 'swift', 'swift-tensorflow'))
