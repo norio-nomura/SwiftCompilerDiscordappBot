@@ -28,11 +28,16 @@ var package = Package(
     ]
 )
 
+#if canImport(TensorFlow)
+if ProcessInfo.processInfo.environment["SWIFT_VERSION"] ?? "" < "DEVELOPMENT-2018-10-05-a" {
+    package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
+    package.targets[0].dependencies.append("RxSwift")
+}
+#else
 if ProcessInfo.processInfo.environment["SWIFT_VERSION"] ?? "" < "DEVELOPMENT-SNAPSHOT-2018-09-18-a" {
     package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
     package.targets[0].dependencies.append("RxSwift")
 }
-#if !canImport(TensorFlow)
 package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
 package.targets[0].dependencies.append("SwiftyMath")
 package.dependencies.append(.package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"))
