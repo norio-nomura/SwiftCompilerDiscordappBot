@@ -77,8 +77,8 @@ extension Message {
         return (options, swiftCode)
     }
 
-    private static let regexForCodeblock = regex(pattern: "^```.*?\\n([\\s\\S]*?\\n)```")
-    private static let regexForMentionedLine = regex(pattern: "^.*?<@!?\(App.bot.user!.id)>(.*?)$")
+    private static let regexForCodeblock = regex(pattern: "```(?:.*?$)?(.*?)```")
+    private static let regexForMentionedLine = regex(pattern: "<@!?\(App.bot.user!.id)>(.*?)(?:```|$)")
 }
 
 extension TextChannel {
