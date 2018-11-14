@@ -38,8 +38,10 @@ if ProcessInfo.processInfo.environment["SWIFT_VERSION"] ?? "" < "DEVELOPMENT-SNA
     package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
     package.targets[0].dependencies.append("RxSwift")
 }
-package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
-package.targets[0].dependencies.append("SwiftyMath")
+if ProcessInfo.processInfo.environment["SWIFT_VERSION"] ?? "" < "DEVELOPMENT-SNAPSHOT-2018-11-13-a" {
+    package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
+    package.targets[0].dependencies.append("SwiftyMath")
+}
 package.dependencies.append(.package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"))
 package.targets[0].dependencies.append("Vapor")
 #endif
