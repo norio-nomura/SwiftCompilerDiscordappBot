@@ -34,9 +34,10 @@ workflows:
           filters: { branches: { ignore: [swift40, swift42, swift, swift-tensorflow] } }
           post-steps: [swiftlint]
       - build_with_image:
-          name: swift-4.2-branch
-          image: norionomura/swift:swift-4.2-branch
+          name: swift-4.2.1-RELEASE
+          image: norionomura/swiftlint:swift-4.2.1
           filters: { branches: { ignore: [swift40, swift41, swift, swift-tensorflow] } }
+          post-steps: [swiftlint]
       - build_with_image:
           name: swift-nightly
           image: norionomura/swift:nightly
