@@ -18,7 +18,7 @@ jobs:
     steps:
       - checkout
       - run: apt-get update && apt-get install -y libsodium-dev
-      - run: swift build -v
+      - run: swift build -c release
 
 workflows:
   workflow:
