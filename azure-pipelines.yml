@@ -18,6 +18,7 @@ trigger:
 - swift40
 - swift41
 - swift42
+- swift50
 - swift
 - swift-tensorflow
 
