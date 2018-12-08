@@ -24,25 +24,7 @@ workflows:
   workflow:
     jobs:
       - build_with_image:
-          name: swift-4.0.3-RELEASE
-          image: norionomura/swiftlint:swift-4.0.3
-          filters: { branches: { ignore: [swift41, swift42, swift, swift-tensorflow] } }
-          post-steps: [swiftlint]
-      - build_with_image:
-          name: swift-4.1.3-RELEASE
-          image: norionomura/swiftlint:swift-4.1.3
-          filters: { branches: { ignore: [swift40, swift42, swift, swift-tensorflow] } }
-          post-steps: [swiftlint]
-      - build_with_image:
           name: swift-4.2.1-RELEASE
           image: norionomura/swiftlint:swift-4.2.1
           filters: { branches: { ignore: [swift40, swift41, swift, swift-tensorflow] } }
           post-steps: [swiftlint]
-      - build_with_image:
-          name: swift-nightly
-          image: norionomura/swift:nightly
-          filters: { branches: { ignore: [swift40, swift41, swift42, swift-tensorflow] } }
-      - build_with_image:
-          name: swift-tensorflow
-          image: norionomura/swift-tensorflow
-          filters: { branches: { ignore: [swift40, swift41, swift42, swift] } }
