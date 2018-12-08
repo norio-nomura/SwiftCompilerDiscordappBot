@@ -1,11 +1,13 @@
 resources:
   containers:
   - container: swift40
-    image: norionomura/swiftlint:swift-4.0.3
+    image: norionomura/swiftlint:swift-4.0
   - container: swift41
-    image: norionomura/swiftlint:swift-4.1.3
+    image: norionomura/swiftlint:swift-4.1
   - container: swift42
-    image: norionomura/swift:swift-4.2-branch
+    image: norionomura/swiftlint:swift-4.2
+  - container: swift50
+    image: norionomura/swift:swift-5.0-branch
   - container: nightly
     image: norionomura/swift:nightly
   - container: tensorflow
@@ -21,35 +23,42 @@ trigger:
 
 jobs:
 - job: swift40
-  condition: not(in(variables['Build.SourceBranchName'], 'swift41', 'swift42', 'swift', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift41', 'swift42', 'swift50', 'swift', 'swift-tensorflow'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: swift40
   steps:
     - script: swift build --package-path Libraries
 - job: swift41
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift42', 'swift', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift42', 'swift50', 'swift', 'swift-tensorflow'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: swift41
   steps:
     - script: swift build --package-path Libraries
 - job: swift42
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift50', 'swift', 'swift-tensorflow'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: swift42
   steps:
     - script: swift build --package-path Libraries
+- job: swift50
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift', 'swift-tensorflow'))
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  container: swift50
+  steps:
+    - script: swift build --package-path Libraries
 - job: nightly
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift50', 'swift-tensorflow'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: nightly
   steps:
     - script: swift build --package-path Libraries
 - job: tensorflow
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift50', 'swift'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: tensorflow
