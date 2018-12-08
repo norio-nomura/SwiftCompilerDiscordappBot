@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE
+ARG DOCKER_IMAGE=norionomura/swift:421
 FROM ${DOCKER_IMAGE}
 RUN apt-get update && apt-get install -y \
     libsodium-dev libunwind8 && \
