@@ -26,5 +26,5 @@ workflows:
       - build_with_image:
           name: swift-4.2.1-RELEASE
           image: norionomura/swiftlint:swift-4.2.1
-          filters: { branches: { ignore: [swift40, swift41, swift, swift-tensorflow] } }
+          filters: { branches: { ignore: [/swift.*/] } }
           post-steps: [swiftlint]
