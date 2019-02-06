@@ -55,7 +55,7 @@ struct App {
             (input != nil ? ["-i"] : []) +
             ["--rm"] +
             (directory.map { ["-v", "\($0.path):\($0.path)", "-w", $0.path] } ?? []) +
-            ["norionomura/swift:412"]
+            ["norionomura/swift:422"]
         return execute(docker + args, in: directory, input: input)
 #elseif os(Linux)
         return execute(args, in: directory, input: input)
