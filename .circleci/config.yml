@@ -24,7 +24,7 @@ workflows:
   workflow:
     jobs:
       - build_with_image:
-          name: swift-4.2.2-RELEASE
-          image: norionomura/swiftlint:swift-4.2.2
+          name: Swift 4.2
+          image: norionomura/swiftlint:swift-4.2
           filters: { branches: { ignore: [/swift.*/] } }
           post-steps: [swiftlint]
