@@ -1,18 +1,26 @@
 trigger:
 - master
 - swift50
+- swift51
 - swift
 
 jobs:
 - job: swift50
-  condition: not(in(variables['Build.SourceBranchName'], 'swift'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift51', 'swift'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: norionomura/swift:swift-5.0-branch
   steps:
     - script: swift build --package-path Libraries
+- job: swift51
+  condition: not(in(variables['Build.SourceBranchName'], 'swift50', 'swift'))
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  container: norionomura/swift:swift-5.1-branch
+  steps:
+    - script: swift build --package-path Libraries
 # - job: nightly
-#   condition: not(in(variables['Build.SourceBranchName'], 'swift50'))
+#   condition: not(in(variables['Build.SourceBranchName'], 'swift50', 'swift51'))
 #   pool:
 #     vmImage: 'Ubuntu 16.04'
 #   container: norionomura/swift:nightly
