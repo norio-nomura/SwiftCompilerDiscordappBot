@@ -55,7 +55,7 @@ struct App {
             (input != nil ? ["-i"] : []) +
             ["--rm"] +
             (directory.map { ["-v", "\($0.path):\($0.path)", "-w", $0.path] } ?? []) +
-            ["norionomura/swift:4.2"]
+            ["norionomura/swift:5.0"]
         return execute(docker + args, in: directory, input: input)
 #elseif os(Linux)
         return execute(args, in: directory, input: input)
@@ -119,17 +119,10 @@ struct App {
         var content = ""
         var remain = 2000
 
-#if swift(>=4.1)
         func append<S: StringProtocol>(_ string: S, _ count: Int = 0) {
             content += string
             remain -= count == 0 ? string.count : count
         }
-#else
-        func append<S: StringProtocol>(_ string: S, _ count: Int = 0) where S.IndexDistance == Int {
-            content += string
-            remain -= count == 0 ? string.count : count
-        }
-#endif
 
         // check exit status
         if status == 9 {

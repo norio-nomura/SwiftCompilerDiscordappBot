@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "035962e6b6e03c8721a91a9b96dc084289795cb4",
-          "version": "1.11.0"
+          "revision": "29a9f2aca71c8afb07e291336f1789337ce235dd",
+          "version": "1.13.2"
         }
       },
       {
@@ -113,9 +113,9 @@
         "package": "SwiftBacktrace",
         "repositoryURL": "https://github.com/norio-nomura/SwiftBacktrace",
         "state": {
-          "branch": "master",
-          "revision": "2bcb761822fdf508047bbc93bfd9648e50fd94b4",
-          "version": null
+          "branch": null,
+          "revision": "6a3e4976915f33571d6f2559a9989a0bc4840ca6",
+          "version": "1.0.0"
         }
       },
       {
@@ -140,9 +140,9 @@
         "package": "Yams",
         "repositoryURL": "https://github.com/jpsim/Yams",
         "state": {
-          "branch": null,
-          "revision": "26ab35f50ea891e8edefcc9d975db2f6b67e1d68",
-          "version": "1.0.1"
+          "branch": "master",
+          "revision": "b82300bb83ca678c75dd918606b70938a84a8fc9",
+          "version": null
         }
       }
     ]
