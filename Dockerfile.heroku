@@ -1,5 +1,5 @@
 ARG DOCKER_IMAGE=norionomura/swift:4.2
-FROM norionomura/swift-compiler-discordapp-bot as builder
+FROM norionomura/swift-compiler-discordapp-bot:1.0 as builder
 
 FROM ${DOCKER_IMAGE}
 RUN apt-get update && apt-get install -y \
