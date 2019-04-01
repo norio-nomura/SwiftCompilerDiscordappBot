@@ -11,10 +11,10 @@ jobs:
   container: norionomura/swift:swift-5.0-branch
   steps:
     - script: swift build --package-path Libraries
-- job: nightly
-  condition: not(in(variables['Build.SourceBranchName'], 'swift50'))
-  pool:
-    vmImage: 'Ubuntu 16.04'
-  container: norionomura/swift:nightly
-  steps:
-    - script: swift build --package-path Libraries
+# - job: nightly
+#   condition: not(in(variables['Build.SourceBranchName'], 'swift50'))
+#   pool:
+#     vmImage: 'Ubuntu 16.04'
+#   container: norionomura/swift:nightly
+#   steps:
+#     - script: swift build --package-path Libraries
