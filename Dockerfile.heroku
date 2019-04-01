@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=norionomura/swift:4.2
+ARG DOCKER_IMAGE=norionomura/swift:5.0
 FROM norionomura/swift-compiler-discordapp-bot as builder
 
 FROM ${DOCKER_IMAGE}

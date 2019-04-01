@@ -17,7 +17,7 @@ Inspired by [swift-compiler-discord-bot](https://github.com/kishikawakatsumi/swi
 
 ```terminal.sh-session
 export DISCORD_TOKEN="<discord token here>" # set discord token
-export DOCKER_IMAGE=norionomura/swift:41 # select docker image
+export DOCKER_IMAGE=norionomura/swift:5.0 # select docker image
 docker-compose up
 ```
 
@@ -31,7 +31,7 @@ cd SwiftCompilerDiscordappBot
 heroku container:login
 heroku create
 heroku config:set DISCORD_TOKEN="<discord token here>"
-heroku container:push worker --arg DOCKER_IMAGE=norionomura/swift:41
+heroku container:push worker --arg DOCKER_IMAGE=norionomura/swift:5.0
 ```
 Configure Dyno on your [Heroku Dashboard](https://dashboard.heroku.com/apps)
 
