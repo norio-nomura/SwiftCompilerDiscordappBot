@@ -23,9 +23,14 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /usr/bin/SwiftCompilerDiscordappBot /usr/bin
 RUN mkdir -p /swiftbot/lib
-COPY --from=builder /usr/lib/swift/linux/libFoundation.so /swiftbot/lib
+COPY --from=builder /usr/lib/swift/linux/libBlocksRuntime.so /swiftbot/lib
 COPY --from=builder /usr/lib/swift/linux/libdispatch.so /swiftbot/lib
+COPY --from=builder /usr/lib/swift/linux/libFoundation.so /swiftbot/lib
+COPY --from=builder /usr/lib/swift/linux/libicudataswift.so.61 /swiftbot/lib
+COPY --from=builder /usr/lib/swift/linux/libicui18nswift.so.61 /swiftbot/lib
+COPY --from=builder /usr/lib/swift/linux/libicuucswift.so.61 /swiftbot/lib
 COPY --from=builder /usr/lib/swift/linux/libswiftCore.so /swiftbot/lib
+COPY --from=builder /usr/lib/swift/linux/libswiftDispatch.so /swiftbot/lib
 COPY --from=builder /usr/lib/swift/linux/libswiftGlibc.so /swiftbot/lib
 
 USER root
