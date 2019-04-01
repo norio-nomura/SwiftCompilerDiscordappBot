@@ -1,9 +1,9 @@
-// swift-tools-version:4.0
+// swift-tools-version:5.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
-let package = Package(
+var package = Package(
     name: "Libraries",
     products: [
         .library(
@@ -12,14 +12,13 @@ let package = Package(
             targets: ["Libraries"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"),
-        .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master")),
-        .package(url: "https://github.com/vapor/vapor.git", from: "2.4.4")
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0"),
+        .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
     ],
     targets: [
         .target(
             name: "Libraries",
-            dependencies: ["RxSwift", "SwiftBacktrace", "Vapor"]),
+            dependencies: ["NIO", "NIOTLS", "NIOHTTP1", "NIOConcurrencyHelpers", "NIOFoundationCompat", "NIOWebSocket", "SwiftBacktrace"]),
         .target(
             name: "Run",
             dependencies: ["Libraries"]),
