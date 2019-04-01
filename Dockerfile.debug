@@ -1,7 +1,7 @@
 ARG DOCKER_IMAGE=norionomura/swift:5.0
 FROM norionomura/swift:5.0 as builder
 RUN apt-get update && apt-get install -y \
-    libsodium-dev libunwind8 && \
+    libsodium-dev libunwind8 libssl-dev && \
     rm -r /var/lib/apt/lists/* && \
     useradd -m swiftbot
 
@@ -17,7 +17,7 @@ RUN cd /SwiftCompilerDiscordappBot && \
 
 FROM ${DOCKER_IMAGE}
 RUN apt-get update && apt-get install -y \
-    libsodium-dev libunwind8 && \
+    libsodium-dev libunwind8 libssl1.0.0 && \
     rm -r /var/lib/apt/lists/* && \
     useradd -m swiftbot
 
