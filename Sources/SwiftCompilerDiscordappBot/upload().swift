@@ -67,11 +67,7 @@ struct Ptpbpw {
     }
 }
 
-#if os(macOS) || os(Linux) && swift(>=4.1)
 let session = URLSession.shared
-#else
-let session = URLSession(configuration: .default)
-#endif
 
 private func upload0<T: Decodable>(_ text: String?, name: String, as filename: String, to url: URL) -> T? {
     guard let text = text else { return nil }

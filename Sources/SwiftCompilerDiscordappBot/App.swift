@@ -119,17 +119,10 @@ struct App {
         var content = ""
         var remain = 2000
 
-#if swift(>=4.1)
         func append<S: StringProtocol>(_ string: S, _ count: Int = 0) {
             content += string
             remain -= count == 0 ? string.count : count
         }
-#else
-        func append<S: StringProtocol>(_ string: S, _ count: Int = 0) where S.IndexDistance == Int {
-            content += string
-            remain -= count == 0 ? string.count : count
-        }
-#endif
 
         // check exit status
         if status == 9 {
