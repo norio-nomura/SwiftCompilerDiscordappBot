@@ -29,20 +29,9 @@ var package = Package(
 )
 
 guard let swiftVersion = ProcessInfo.processInfo.environment["SWIFT_VERSION"] else { exit(0) }
-#if canImport(TensorFlow)
-if swiftVersion < "DEVELOPMENT-2018-10-05-a" {
-    package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
-    package.targets[0].dependencies.append("RxSwift")
-}
-#else
-if swiftVersion < "DEVELOPMENT-SNAPSHOT-2018-09-18-a" && swiftVersion < "5.0" {
-    package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
-    package.targets[0].dependencies.append("RxSwift")
-}
-if swiftVersion < "DEVELOPMENT-SNAPSHOT-2018-11-13-a" && swiftVersion < "5.0" {
-    package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
-    package.targets[0].dependencies.append("SwiftyMath")
-}
+package.dependencies.append(.package(url: "https://github.com/ReactiveX/RxSwift.git", from: "4.1.2"))
+package.targets[0].dependencies.append("RxSwift")
+package.dependencies.append(.package(url: "https://github.com/taketo1024/SwiftyMath.git", from: "0.3.0"))
+package.targets[0].dependencies.append("SwiftyMath")
 package.dependencies.append(.package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"))
 package.targets[0].dependencies.append("Vapor")
-#endif

@@ -6,62 +6,32 @@ resources:
     image: norionomura/swiftlint:swift-4.1
   - container: swift42
     image: norionomura/swiftlint:swift-4.2
-  - container: swift50
-    image: norionomura/swift:swift-5.0-branch
-  - container: nightly
-    image: norionomura/swift:nightly
-  - container: tensorflow
-    image: norionomura/swift-tensorflow
 
 trigger:
-- master
+- 1.0-branch
 - swift40
 - swift41
 - swift42
-- swift50
-- swift
-- swift-tensorflow
 
 jobs:
 - job: swift40
-  condition: not(in(variables['Build.SourceBranchName'], 'swift41', 'swift42', 'swift50', 'swift', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift41', 'swift42'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: swift40
   steps:
     - script: swift build --package-path Libraries
 - job: swift41
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift42', 'swift50', 'swift', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift42'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: swift41
   steps:
     - script: swift build --package-path Libraries
 - job: swift42
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift50', 'swift', 'swift-tensorflow'))
+  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41'))
   pool:
     vmImage: 'Ubuntu 16.04'
   container: swift42
-  steps:
-    - script: swift build --package-path Libraries
-- job: swift50
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift', 'swift-tensorflow'))
-  pool:
-    vmImage: 'Ubuntu 16.04'
-  container: swift50
-  steps:
-    - script: swift build --package-path Libraries
-- job: nightly
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift50', 'swift-tensorflow'))
-  pool:
-    vmImage: 'Ubuntu 16.04'
-  container: nightly
-  steps:
-    - script: swift build --package-path Libraries
-- job: tensorflow
-  condition: not(in(variables['Build.SourceBranchName'], 'swift40', 'swift41', 'swift42', 'swift50', 'swift'))
-  pool:
-    vmImage: 'Ubuntu 16.04'
-  container: tensorflow
   steps:
     - script: swift build --package-path Libraries
