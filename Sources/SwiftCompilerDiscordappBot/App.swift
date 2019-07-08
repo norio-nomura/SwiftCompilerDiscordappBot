@@ -194,7 +194,7 @@ struct App {
                 let node = try Yams.compose(yaml: yaml),
                 let commands = node["commands"],
                 let module = commands["C.Run.module"] ?? commands["C.Run-debug.module"],
-                let otherArgs = module["other-args"]?.array(of: String.self),
+                let otherArgs = module["other-args"]?.array(of: String.self).filter({ $0 != "-parseable-output" }),
                 let index = otherArgs.index(of: "-DSWIFT_PACKAGE").map(otherArgs.index(after:))
                 else { return [] }
 
