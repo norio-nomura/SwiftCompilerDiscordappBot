@@ -14,6 +14,7 @@ var package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0"),
         .package(url: "https://github.com/apple/swift-standard-library-preview.git", from: "0.0.1"),
+        .package(url: "https://github.com/broadwaylamb/OpenCombine", from: "0.1.0"),
         .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
     ],
     targets: [
@@ -32,6 +33,7 @@ let librariesTarget = Target.target(
         .product(name: "NIOHTTP1", package: "swift-nio"),
         .product(name: "NIOTLS", package: "swift-nio"),
         .product(name: "NIOWebSocket", package: "swift-nio"),
+        .product(name: "OpenCombine", package: "OpenCombine"),
         .product(name: "StandardLibraryPreview", package: "swift-standard-library-preview"),
         .product(name: "SwiftBacktrace", package: "SwiftBacktrace"),
     ]

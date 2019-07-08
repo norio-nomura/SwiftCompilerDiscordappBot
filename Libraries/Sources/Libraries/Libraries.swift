@@ -4,6 +4,9 @@
 #if canImport(NIO)
     import NIO
 #endif
+#if canImport(OpenCombine)
+    import OpenCombine
+#endif
 #if canImport(StandardLibraryPreview)
     import StandardLibraryPreview
 #endif
