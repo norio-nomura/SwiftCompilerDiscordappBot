@@ -19,7 +19,7 @@ jobs:
   Swift:
     strategy:
       matrix:
-        tag: ['5.0', '5.1']
+        tag: ['5.0']
     runs-on: ubuntu-latest
     container:
       image: norionomura/swift:${{ matrix.tag }}
