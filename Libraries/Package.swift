@@ -13,12 +13,13 @@ var package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0"),
+        .package(url: "https://github.com/apple/swift-standard-library-preview.git", from: "0.0.1"),
         .package(url: "https://github.com/norio-nomura/SwiftBacktrace", .branch("master"))
     ],
     targets: [
         .target(
             name: "Libraries",
-            dependencies: ["NIO", "NIOTLS", "NIOHTTP1", "NIOConcurrencyHelpers", "NIOFoundationCompat", "NIOWebSocket", "SwiftBacktrace"]),
+            dependencies: ["NIO", "NIOTLS", "NIOHTTP1", "NIOConcurrencyHelpers", "NIOFoundationCompat", "NIOWebSocket", "SwiftBacktrace", "StandardLibraryPreview"]),
         .target(
             name: "Run",
             dependencies: ["Libraries"]),
