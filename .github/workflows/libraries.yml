@@ -2,7 +2,7 @@ name: Libraries
 
 on:
   push:
-    branches: [master]
+    branches: ['master', 'swift*']
     paths: 
       - '.github/workflows/libraries.yml'
       - 'Libraries/Package*'
