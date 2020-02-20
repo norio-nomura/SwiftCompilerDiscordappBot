@@ -1,0 +1,29 @@
+name: Libraries
+
+on:
+  push:
+    branches: ['master', 'swift*']
+    paths: 
+      - '.github/workflows/libraries.yml'
+      - 'Libraries/Package*'
+      - 'Libraries/Sources/**'
+      - 'Libraries/Tests/**'
+  pull_request:
+    paths: 
+      - '.github/workflows/libraries.yml'
+      - 'Libraries/Package*'
+      - 'Libraries/Sources/**'
+      - 'Libraries/Tests/**'
+
+jobs:
+  Linux:
+    strategy:
+      matrix:
+        tag: ['5.1', 'swift-5.2-branch', 'nightly']
+    runs-on: ubuntu-latest
+    container:
+      image: norionomura/swift:${{ matrix.tag }}
+    steps:
+      - uses: actions/checkout@v1
+      - run: swift build
+        working-directory: Libraries
