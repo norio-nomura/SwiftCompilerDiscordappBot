@@ -183,7 +183,7 @@ struct App {
     private static let versionInfo = execute2(["swift", "--version"]).stdout
     private static let implicitNickname =  regexForVersionInfo.firstMatch(in: versionInfo).last.map { "swift-" + $0 }
     private static let optionsForLibraries = { () -> [String] in
-        let librariesURL = URL(fileURLWithPath: "/Libraries/.build/x86_64-unknown-linux/debug")
+        let librariesURL = URL(fileURLWithPath: "/Libraries/.build/debug").resolvingSymlinksInPath()
         guard FileManager.default.fileExists(atPath: librariesURL.appendingPathComponent("libLibraries.so").path) else {
             return []
         }
