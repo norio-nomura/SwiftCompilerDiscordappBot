@@ -1,3 +1,6 @@
+#if canImport(ArgumentParser)
+    import ArgumentParser
+#endif
 #if canImport(NIO)
     import NIO
 #endif
