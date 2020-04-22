@@ -19,7 +19,7 @@ jobs:
   Linux:
     strategy:
       matrix:
-        tag: ['5.1', 'swift-5.2-branch', 'nightly']
+        tag: ['swift-5.3-branch']
     runs-on: ubuntu-latest
     container:
       image: norionomura/swift:${{ matrix.tag }}
