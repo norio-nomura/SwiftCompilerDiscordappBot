@@ -123,7 +123,7 @@
         "repositoryURL": "https://github.com/norio-nomura/Sword",
         "state": {
           "branch": "patch-for-swift-bot",
-          "revision": "9914c5c04339e2e94623a9387077b18d7cf33432",
+          "revision": "c97eb02705fe2bf147e1e2621874afeb73563787",
           "version": null
         }
       },
@@ -140,9 +140,9 @@
         "package": "Yams",
         "repositoryURL": "https://github.com/jpsim/Yams",
         "state": {
-          "branch": "master",
-          "revision": "b82300bb83ca678c75dd918606b70938a84a8fc9",
-          "version": null
+          "branch": null,
+          "revision": "81a65c4069c28011ee432f2858ba0de49b086677",
+          "version": "3.0.1"
         }
       }
     ]
