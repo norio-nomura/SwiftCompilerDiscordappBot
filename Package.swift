@@ -8,7 +8,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/norio-nomura/Sword", .branch("patch-for-swift-bot")),
         .package(url: "https://github.com/norio-nomura/SwiftBacktrace", from: "1.0.0"),
-        .package(url: "https://github.com/jpsim/Yams", .branch("master"))
+        .package(url: "https://github.com/jpsim/Yams", from: "3.0.0")
     ],
     targets: [
         .target(
