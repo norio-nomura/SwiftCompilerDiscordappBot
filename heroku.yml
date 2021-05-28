@@ -2,5 +2,5 @@ build:
   docker:
     worker: Dockerfile.heroku
   config:
-    DOCKER_IMAGE: norionomura/swift:20210526a
+    DOCKER_IMAGE: norionomura/swift:20210527a
 
